@@ -13,6 +13,7 @@ public class ResponseWithWeatherDto {
     private Long id;
     private String name;
     private CoordDto coord;
+    private CountryDto sys;
     private List<WeatherDto> weather;
     private MainDto main;
 }

@@ -5,7 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CoordDto {
-    private Double lon;
-    private Double lat;
+public class CountryDto {
+    private String country;
 }

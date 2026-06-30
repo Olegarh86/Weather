@@ -7,17 +7,17 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MainDto {
-    private double temp;
+    private String temp;
     @JsonProperty("feels_like")
-    private double feelsLike;
+    private String feelsLike;
     @JsonProperty("temp_min")
-    private double tempMin;
+    private String tempMin;
     @JsonProperty("temp_max")
-    private double tempMax;
-    private int pressure;
-    private int humidity;
+    private String tempMax;
+    private String pressure;
+    private String humidity;
     @JsonProperty("sea_level")
-    private int seaLevel;
+    private String seaLevel;
     @JsonProperty("grnd_level")
-    private int grndLevel;
+    private String grndLevel;
 }

@@ -9,8 +9,8 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ResponseWithCoordinates {
     private String name;
-    private double lat;
-    private double lon;
+    private String lat;
+    private String lon;
     private String country;
     private String state;
 }

@@ -15,7 +15,7 @@ public class SessionCleanupService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void cleanup() {
         jdbcTemplate.update("DELETE FROM sessions WHERE expires_at < now()");
     }
