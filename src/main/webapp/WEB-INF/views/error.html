@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Weather Viewer - Error</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/resources/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/resources/css/style.css}">
 </head>
 <body>
@@ -12,7 +12,7 @@
 <div class="container text-center mt-5">
     <h1 class="display-4">Oops! Something Went Wrong</h1>
     <p class="lead">We're sorry, but an unexpected error has occurred. Please try again later.</p>
-    <a class="btn btn-primary" th:href="@{/weather/users/sign-in}">Go to Home</a>
+    <a class="btn btn-primary" th:href="@{/weather/users/index}">Go to Home</a>
 </div>
 
 </body>

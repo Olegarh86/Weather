@@ -2,16 +2,14 @@ package ru.weather.model;
 
 import lombok.Getter;
 
-import java.sql.Timestamp;
 import java.util.UUID;
 
 @Getter
 public class WeatherSession {
     private UUID uuid;
-    private long userId;
-    private Timestamp timestamp;
+    private Long userId;
 
-    public WeatherSession(UUID uuid, long userId) {
+    public WeatherSession(UUID uuid, Long userId) {
         this.uuid = uuid;
         this.userId = userId;
     }

@@ -1,4 +1,25 @@
 package ru.weather.service;
 
-public class PasswordEncorerService {
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import ru.weather.dto.UserSignUpDto;
+
+@Service
+public class PasswordEncoderService {
+    private final BCryptPasswordEncoder encoder;
+
+    public PasswordEncoderService() {
+        this.encoder = new BCryptPasswordEncoder();
+    }
+
+    public String encodePassword(UserSignUpDto userSignUpDto) {
+        if (userSignUpDto.getPassword().equals(userSignUpDto.getPasswordConfirm())) {
+            return encoder.encode(userSignUpDto.getPassword());
+        }
+        return "";
+    }
+
+    public boolean matches(String password, String password1) {
+        return encoder.matches(password, password1);
+    }
 }

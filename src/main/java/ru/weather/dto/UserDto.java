@@ -15,7 +15,6 @@ public class UserDto {
     @NotEmpty(message = "Password should not be empty")
     @Size(min = 8, max = 64, message = "Password should be between 8 and 64 characters")
     private String password;
-    private String location;
 
     public UserDto() {
     }

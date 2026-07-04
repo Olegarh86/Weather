@@ -4,7 +4,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -13,16 +12,10 @@ import ru.weather.dao.LocationDao;
 import ru.weather.dao.SessionDao;
 import ru.weather.dao.UserDao;
 import ru.weather.dto.*;
-import ru.weather.model.WeatherLocation;
-import ru.weather.model.WeatherSession;
-import ru.weather.model.WeatherUser;
-import ru.weather.service.ApiService;
+import ru.weather.exception.*;
+import ru.weather.service.*;
 
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 
 @Controller
@@ -32,44 +25,55 @@ public class UsersController {
     private final SessionDao sessionDao;
     private final LocationDao locationDao;
     private final ApiService apiService;
+    private final AuthService authService;
+    private final PasswordEncoderService passwordEncoderService;
+    private final UserProfileService userProfileService;
+    private final SessionService sessionService;
+    private final LocationService locationService;
 
     @Autowired
-    public UsersController(UserDao userDao, SessionDao sessionDao, LocationDao locationDao, ApiService apiService) {
+    public UsersController(UserDao userDao, SessionDao sessionDao, LocationDao locationDao, ApiService apiService, AuthService authService, PasswordEncoderService passwordEncoderService, UserProfileService userProfileService, SessionService sessionService, LocationService locationService) {
         this.userDao = userDao;
         this.sessionDao = sessionDao;
         this.locationDao = locationDao;
         this.apiService = apiService;
+        this.authService = authService;
+        this.passwordEncoderService = passwordEncoderService;
+        this.userProfileService = userProfileService;
+        this.sessionService = sessionService;
+        this.locationService = locationService;
     }
 
     @GetMapping
-    public String users(Model model) {
-        return "redirect:/weather/users/sign-in";
+    public String users() {
+        return "redirect:/weather/users/index";
     }
 
     @PostMapping
     public String signUp(@RequestParam("redirect_to") String redirectTo, @ModelAttribute("userSignUpDto") @Valid UserSignUpDto userSignUpDto,
-                         BindingResult bindingResult, Model model) {
+                         BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return "sign-up-with-errors";
         }
-        if (userSignUpDto.getPassword().equals(userSignUpDto.getPasswordConfirm())) {
-            try {
-                BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-                String encodedPassword = encoder.encode(userSignUpDto.getPassword());
-                WeatherUser weatherUser = new WeatherUser(userSignUpDto.getLogin(), encodedPassword);
-                userDao.saveUser(weatherUser);
-                Optional<WeatherUser> weatherUserOptional = userDao.getUser(weatherUser.getLogin(), encodedPassword);
+        String password = passwordEncoderService.encodePassword(userSignUpDto);
 
-                if (weatherUserOptional.isPresent()) {
-                    model.addAttribute("weatherUser", weatherUserOptional.get());
-                }
-                return "redirect:" + redirectTo;
-            } catch (Exception e) {
-                bindingResult.reject("password", "Passwords do not match");
-                return "sign-up-with-errors";
-            }
+        if (password.isBlank()) {
+            bindingResult.rejectValue("passwordConfirm", "passwordNotConfirm");
+            return "sign-up-with-errors";
         }
-        return "sign-up-with-errors";
+        userSignUpDto.setPassword(password);
+        try {
+            userProfileService.createNewUser(userSignUpDto);
+        } catch (LoginAlreadyExist e) {
+            bindingResult.rejectValue("login", "loginExist");
+            return "sign-up-with-errors";
+        }
+        return "redirect:" + redirectTo;
+    }
+
+    @GetMapping("/sign-up")
+    public String signUp(@ModelAttribute("userSignUpDto") UserSignUpDto userSignUpDto) {
+        return "sign-up";
     }
 
     @GetMapping("/sign-in")
@@ -77,18 +81,19 @@ public class UsersController {
         return "sign-in";
     }
 
-    @PostMapping("/sign-in")
-    public String user(@ModelAttribute("weatherUser") @Valid WeatherUser weatherUser, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return "sign-in-with-errors";
+    @PostMapping("/sign-out")
+    public String signOut(@CookieValue(value = "uuid", required = false) String token, HttpServletResponse response) {
+        if (token == null) {
+            return "redirect:/weather/users/sign-in";
         }
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String encodedPassword = encoder.encode(weatherUser.getPassword());
-        Optional<WeatherUser> weatherUserOptional = userDao.getUser(weatherUser.getLogin(), encodedPassword);
-        if (weatherUserOptional.isPresent()) {
-            return "redirect:/weather/users/index";
+        try {
+            sessionService.deleteSession(token);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return "sign-in-with-errors";
+        Cookie cookie = authService.cleanUpCookie();
+        response.addCookie(cookie);
+        return "redirect:/weather/users/index";
     }
 
     @PostMapping("/login")
@@ -97,57 +102,9 @@ public class UsersController {
         if (bindingResult.hasErrors()) {
             return "sign-in-with-errors";
         }
-        Optional<WeatherUser> optionalWeatherUser = userDao.findByLogin(userDto.getLogin());
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String password = optionalWeatherUser.map(WeatherUser::getPassword)
-                .orElse("$2a$10$Nx7Ww5Wb0bX.S2P4O7mQO.wYw8yVp2Y1G2Z2e2f2g2h2i2j2k2l2m");
-        boolean matches = encoder.matches(userDto.getPassword(), password);
-
-        if (optionalWeatherUser.isPresent() && matches) {
-            long id = optionalWeatherUser.get().getId();
-            UUID uuid = UUID.randomUUID();
-            Cookie cookie = new Cookie("uuid", uuid.toString());
-            cookie.setMaxAge(3600);
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-
-            Instant expiresAt = Instant.now().plusSeconds(3600);
-            sessionDao.addSession(new WeatherSession(uuid, id), expiresAt);
-            response.addCookie(cookie);
-
-            return "redirect:" + redirectTo;
-        }
-        bindingResult.reject("Auth error", "Login or password is incorrect");
-        return "sign-in-with-errors";
-    }
-
-    @GetMapping("/new")
-    public String newUser(@ModelAttribute("userSignUpDto") UserSignUpDto userSignUpDto) {
-        return "sign-up";
-    }
-
-    @GetMapping("/sign-up")
-    public String signUp(@ModelAttribute("userSignUpDto") UserSignUpDto userSignUpDto) {
-        return "sign-up";
-    }
-
-    @PostMapping("/sign-out")
-    public String signUp(@CookieValue(value = "uuid", required = false) String token, HttpServletResponse response) {
-        if (token == null) {
-            return "redirect:/weather/users/sign-in";
-        }
-        try {
-            UUID uuid = UUID.fromString(token);
-            sessionDao.deleteSession(uuid);
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        Cookie cookie = new Cookie("uuid", "");
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
+        Cookie cookie = authService.authenticate(userDto);
         response.addCookie(cookie);
-        return "redirect:/weather/users/sign-in";
+        return "redirect:" + redirectTo;
     }
 
     @GetMapping("/index")
@@ -155,39 +112,26 @@ public class UsersController {
         if (token == null) {
             return "redirect:/weather/users/sign-in";
         }
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(3600);
-        UUID uuid;
+        Long userId;
         try {
-            uuid = UUID.fromString(token);
-        } catch (IllegalArgumentException e) {
+            userId = sessionService.getUserIdAndRefreshSession(token);
+        } catch (ParseUuidException | SessionNotFound e) {
             return "redirect:/weather/users/sign-in";
         }
-        Optional<Long> userIdOptional = sessionDao.getUserIdAndRefreshSession(expiresAt, uuid, now);
-        if (userIdOptional.isPresent()) {
-            long userId = userIdOptional.get();
-            Optional<WeatherUser> userOptional = userDao.findById(userId);
-            if (userOptional.isPresent()) {
-                List<WeatherLocation> locations = locationDao.getLocationsByUserId(userId);
-                List<CardLocationDto> cardLocations = new ArrayList<>();
-
-                for (WeatherLocation location : locations) {
-                    ResponseWithWeatherDto weather = apiService.getWeather(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()));
-                    cardLocations.add(new CardLocationDto(
-                            weather.getWeather().get(0).getIcon(),
-                            weather.getMain().getTemp(),
-                            location.getName(),
-                            weather.getSys().getCountry(),
-                            weather.getMain().getFeelsLike(),
-                            weather.getWeather().get(0).getDescription(),
-                            weather.getMain().getHumidity(),
-                            String.valueOf(location.getLatitude()),
-                            String.valueOf(location.getLongitude())));
-                }
-                model.addAttribute("allLocations", cardLocations);
-                model.addAttribute("weatherUser", userOptional.get());
-            }
+        String login;
+        try {
+            login = userProfileService.getLogin(userId);
+        } catch (UserNotFoundException e) {
+            return "redirect:/weather/users/sign-in";
         }
+        List<CardLocationDto> cardLocations;
+        try {
+            cardLocations = locationService.getAllWeathers(userId);
+        } catch (GetLocationsByUserIdException | ConnectToWeatherServiceException e) {
+            return "redirect:/weather/users/error";
+        }
+        model.addAttribute("login", login);
+        model.addAttribute("allLocations", cardLocations);
         return "index";
     }
 
@@ -197,34 +141,41 @@ public class UsersController {
         if (token == null) {
             return "redirect:/weather/users/sign-in";
         }
-        Instant expiresAt = Instant.now().plusSeconds(3600);
-        UUID uuid;
+        Long userId;
         try {
-            uuid = UUID.fromString(token);
-        } catch (IllegalArgumentException e) {
+            userId = sessionService.getUserIdAndRefreshSession(token);
+        } catch (ParseUuidException | SessionNotFound e) {
             return "redirect:/weather/users/sign-in";
         }
-        Optional<Long> userIdAndRefreshSession = sessionDao.getUserIdAndRefreshSession(expiresAt, uuid, Instant.now());
-        Optional<WeatherUser> weatherUserOptional = userDao.findById(userIdAndRefreshSession.get());
-        ResponseWithCoordinates[] allLocations = apiService.findAllLocations(locationName);
-        model.addAttribute("allLocations", allLocations);
-        model.addAttribute("user", weatherUserOptional.get());
+        String login;
+        try {
+            login = userProfileService.getLogin(userId);
+        } catch (UserNotFoundException e) {
+            return "redirect:/weather/users/sign-in";
+        }
+        ResponseWithCoordinates[] allLocations;
+        try {
+            allLocations = locationService.findAllLocationsByName(locationName);
+        } catch (ConnectToWeatherServiceException e) {
+            return "redirect:/weather/users/error";
+        }
+        model.addAttribute("login", login);
+        model.addAttribute("id", userId);
         model.addAttribute("locationName", locationName);
+        model.addAttribute("allLocations", allLocations);
         return "search-results";
     }
 
     @PostMapping("/locations/add")
     public String addLocation(@CookieValue(value = "uuid", required = false) String token,
-                              UserLocationsDto location, Model model) {
+                              UserLocationsDto location) {
         if (token == null) {
             return "redirect:/weather/users/sign-in";
         }
-        WeatherLocation weatherLocation = new WeatherLocation(
-                location.getName(), Long.valueOf(location.getUser_id()), Double.valueOf(location.getLatitude()),
-                Double.valueOf(location.getLongitude()));
-        locationDao.saveLocation(weatherLocation);
-//        List<WeatherLocation> locationsByUserId = locationDao.getLocationsByUserId(Long.valueOf(location.getUser_id()));
-//        model.addAttribute("allLocations", locationsByUserId);
+        try {
+            locationService.saveNewLocation(location);
+        } catch (SaveLocationException ignored) {
+        }
         return "redirect:/weather/users/index";
     }
 
@@ -235,17 +186,22 @@ public class UsersController {
         if (token == null) {
             return "redirect:/weather/users/sign-in";
         }
-        Instant expiresAt = Instant.now().plusSeconds(3600);
-        UUID uuid;
+        Long userId;
         try {
-            uuid = UUID.fromString(token);
-        } catch (IllegalArgumentException e) {
+            userId = sessionService.getUserIdAndRefreshSession(token);
+        } catch (SessionNotFound e) {
             return "redirect:/weather/users/sign-in";
         }
-        Optional<Long> userIdOption = sessionDao.getUserIdAndRefreshSession(expiresAt, uuid, Instant.now());
-        if (userIdOption.isPresent()) {
-            locationDao.deleteLocation(userIdOption.get(), Double.valueOf(latitude), Double.valueOf(longitude));
+        try {
+            locationService.deleteLocation(userId, latitude, longitude);
+        } catch (ParseCoordinatesException | DeleteLocationException e) {
+            return "redirect:/weather/users/error";
         }
         return "redirect:/weather/users/index";
+    }
+
+    @GetMapping("/error")
+    public String error() {
+        return "error";
     }
 }

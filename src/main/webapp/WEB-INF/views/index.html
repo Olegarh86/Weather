@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Weather Viewer – Homepage</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/resources/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/resources/css/style.css}">
 </head>
 <body>
@@ -16,7 +16,7 @@
             Weather Tracker
         </a>
         <div class="d-flex align-items-center">
-            <span class="navbar-text me-3" th:object="${weatherUser}" th:text="*{login}">zhukovsd</span>
+            <span class="navbar-text me-3" th:object="${login}" th:text="${login}">zhukovsd</span>
             <form method="POST" th:action="@{/weather/users/sign-out}" class="d-inline">
                 <button class="btn btn-outline-danger" type="submit">Sign out</button>
             </form>

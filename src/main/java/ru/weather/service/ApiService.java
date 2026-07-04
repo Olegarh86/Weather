@@ -35,13 +35,6 @@ public class ApiService {
         return restTemplate.getForObject(urlWeather, ResponseWithWeatherDto.class, params);
     }
 
-//    public ResponseWithWeatherDto getWeather(String latitude, String longitude) {
-//        String path =
-//                "https://api.openweathermap.org/data/2.5/weather?lat=" +
-//                latitude + "&lon=" + longitude + "&units=metric" + "&appid=" + apiKey1;
-//        return restTemplate.getForObject(path, ResponseWithWeatherDto.class);
-//    }
-
     public ResponseWithCoordinates[] findAllLocations(String name) {
         Map< String, String > params = new HashMap<>();
         params.put("name", name);
