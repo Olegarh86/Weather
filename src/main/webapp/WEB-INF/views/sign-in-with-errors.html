@@ -17,9 +17,9 @@
 
     <h2 class="text-center mb-5">Sign In</h2>
 
-    <div class="row justify-content-center" th:if="${#fields.hasErrors('*')}">
-        <div class="col-12 col-lg-4 col-md-6 col-sm-12">
-            <div class="alert alert-danger" role="alert">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-4 col-md-6 col-sm-12" th:object="${userSignInDto}">
+            <div class="alert alert-danger" role="alert" th:if="${#fields.hasErrors('*')}">
                 Invalid username or password.
             </div>
         </div>
@@ -31,26 +31,26 @@
                 <div class="mb-3">
                     <label th:for="login" class="form-label">Username</label>
                     <div class="input-group has-validation">
-                        <input type="text" class="form-control is-invalid" th:errors="*{login}" th:value="*{login}"
-                               required value=""/>
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('login')}">
+                        <input type="text" class="form-control is-invalid" th:field="*{login}" required/>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('login')}" th:errors="*{login}">
                             Invalid login.
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
                     <label th:for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" th:if="${#fields.hasErrors('password')}"
-                           th:errors="*{password}" th:value="*{password}" required value=""/>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}">
-                        Invalid password.
+                    <div class="input-group has-validation">
+                        <input type="password" class="form-control is-invalid" th:field="*{password}" required/>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
+                            Invalid password.
+                        </div>
                     </div>
                 </div>
 
                 <input type="hidden" name="redirect_to" value="/weather/users/index"/>
 
                 <button type="submit" class="btn btn-primary w-100 mt-3">Sign In</button>
-                <p class="mt-2 text-center">Don't have an account? <a th:href="@{/weather/users/new}">Sign up here</a>
+                <p class="mt-2 text-center">Don't have an account? <a th:href="@{/weather/users/sign-up}">Sign up here</a>
                 </p>
             </form>
         </div>

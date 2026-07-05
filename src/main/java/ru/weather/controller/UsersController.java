@@ -102,7 +102,16 @@ public class UsersController {
         if (bindingResult.hasErrors()) {
             return "sign-in-with-errors";
         }
-        Cookie cookie = authService.authenticate(userDto);
+        Cookie cookie;
+        try {
+            cookie = authService.authenticate(userDto);
+        } catch (UserNotFoundException e) {
+            bindingResult.rejectValue("login", "userNotFound");
+            return "sign-in-with-errors";
+        } catch (PasswordIncorrectException ex) {
+            bindingResult.rejectValue("password", "passwordIncorrect");
+            return "sign-in-with-errors";
+        }
         response.addCookie(cookie);
         return "redirect:" + redirectTo;
     }
