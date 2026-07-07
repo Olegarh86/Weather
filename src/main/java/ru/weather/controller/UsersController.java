@@ -1,6 +1,7 @@
 package ru.weather.controller;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,9 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.weather.dao.LocationDao;
-import ru.weather.dao.SessionDao;
-import ru.weather.dao.UserDao;
 import ru.weather.dto.*;
 import ru.weather.exception.*;
 import ru.weather.service.*;
@@ -21,10 +19,6 @@ import java.util.List;
 @Controller
 @RequestMapping("/weather/users")
 public class UsersController {
-    private final UserDao userDao;
-    private final SessionDao sessionDao;
-    private final LocationDao locationDao;
-    private final ApiService apiService;
     private final AuthService authService;
     private final PasswordEncoderService passwordEncoderService;
     private final UserProfileService userProfileService;
@@ -32,11 +26,7 @@ public class UsersController {
     private final LocationService locationService;
 
     @Autowired
-    public UsersController(UserDao userDao, SessionDao sessionDao, LocationDao locationDao, ApiService apiService, AuthService authService, PasswordEncoderService passwordEncoderService, UserProfileService userProfileService, SessionService sessionService, LocationService locationService) {
-        this.userDao = userDao;
-        this.sessionDao = sessionDao;
-        this.locationDao = locationDao;
-        this.apiService = apiService;
+    public UsersController(AuthService authService, PasswordEncoderService passwordEncoderService, UserProfileService userProfileService, SessionService sessionService, LocationService locationService) {
         this.authService = authService;
         this.passwordEncoderService = passwordEncoderService;
         this.userProfileService = userProfileService;
@@ -58,14 +48,14 @@ public class UsersController {
         String password = passwordEncoderService.encodePassword(userSignUpDto);
 
         if (password.isBlank()) {
-            bindingResult.rejectValue("passwordConfirm", "passwordNotConfirm");
+            bindingResult.rejectValue("passwordConfirm", "NotConfirm.weatherUser.password");
             return "sign-up-with-errors";
         }
         userSignUpDto.setPassword(password);
         try {
             userProfileService.createNewUser(userSignUpDto);
         } catch (LoginAlreadyExist e) {
-            bindingResult.rejectValue("login", "loginExist");
+            bindingResult.rejectValue("login", "AlreadyExist.weatherUser.login");
             return "sign-up-with-errors";
         }
         return "redirect:" + redirectTo;
@@ -83,9 +73,6 @@ public class UsersController {
 
     @PostMapping("/sign-out")
     public String signOut(@CookieValue(value = "uuid", required = false) String token, HttpServletResponse response) {
-        if (token == null) {
-            return "redirect:/weather/users/sign-in";
-        }
         try {
             sessionService.deleteSession(token);
         } catch (Exception e) {
@@ -106,10 +93,10 @@ public class UsersController {
         try {
             cookie = authService.authenticate(userDto);
         } catch (UserNotFoundException e) {
-            bindingResult.rejectValue("login", "userNotFound");
+            bindingResult.rejectValue("login", "NotFound.weatherUser");
             return "sign-in-with-errors";
         } catch (PasswordIncorrectException ex) {
-            bindingResult.rejectValue("password", "passwordIncorrect");
+            bindingResult.rejectValue("password", "Incorrect.weatherUser.password");
             return "sign-in-with-errors";
         }
         response.addCookie(cookie);
@@ -117,16 +104,8 @@ public class UsersController {
     }
 
     @GetMapping("/index")
-    public String index(@CookieValue(value = "uuid", required = false) String token, Model model) {
-        if (token == null) {
-            return "redirect:/weather/users/sign-in";
-        }
-        Long userId;
-        try {
-            userId = sessionService.getUserIdAndRefreshSession(token);
-        } catch (ParseUuidException | SessionNotFound e) {
-            return "redirect:/weather/users/sign-in";
-        }
+    public String index(HttpServletRequest request, Model model) {
+        Long userId = (Long) request.getAttribute("userId");
         String login;
         try {
             login = userProfileService.getLogin(userId);
@@ -134,40 +113,22 @@ public class UsersController {
             return "redirect:/weather/users/sign-in";
         }
         List<CardLocationDto> cardLocations;
-        try {
-            cardLocations = locationService.getAllWeathers(userId);
-        } catch (GetLocationsByUserIdException | ConnectToWeatherServiceException e) {
-            return "redirect:/weather/users/error";
-        }
+        cardLocations = locationService.getAllWeathers(userId);
         model.addAttribute("login", login);
         model.addAttribute("allLocations", cardLocations);
         return "index";
     }
 
     @GetMapping("/search-results")
-    public String searchResults(@CookieValue(value = "uuid", required = false) String token,
-                                @RequestParam("location") String locationName, Model model) {
-        if (token == null) {
-            return "redirect:/weather/users/sign-in";
-        }
-        Long userId;
-        try {
-            userId = sessionService.getUserIdAndRefreshSession(token);
-        } catch (ParseUuidException | SessionNotFound e) {
-            return "redirect:/weather/users/sign-in";
-        }
+    public String searchResults(@RequestParam("location") String locationName, Model model,  HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
         String login;
         try {
             login = userProfileService.getLogin(userId);
         } catch (UserNotFoundException e) {
             return "redirect:/weather/users/sign-in";
         }
-        ResponseWithCoordinates[] allLocations;
-        try {
-            allLocations = locationService.findAllLocationsByName(locationName);
-        } catch (ConnectToWeatherServiceException e) {
-            return "redirect:/weather/users/error";
-        }
+        ResponseWithCoordinates[] allLocations = locationService.findAllLocationsByName(locationName);
         model.addAttribute("login", login);
         model.addAttribute("id", userId);
         model.addAttribute("locationName", locationName);
@@ -176,11 +137,7 @@ public class UsersController {
     }
 
     @PostMapping("/locations/add")
-    public String addLocation(@CookieValue(value = "uuid", required = false) String token,
-                              UserLocationsDto location) {
-        if (token == null) {
-            return "redirect:/weather/users/sign-in";
-        }
+    public String addLocation(UserLocationsDto location) {
         try {
             locationService.saveNewLocation(location);
         } catch (SaveLocationException ignored) {
@@ -189,23 +146,10 @@ public class UsersController {
     }
 
     @PostMapping("/locations/delete")
-    public String deleteLocation(@CookieValue(value = "uuid", required = false) String token,
-                                 @RequestParam("latitude") String latitude,
-                                 @RequestParam("longitude") String longitude) {
-        if (token == null) {
-            return "redirect:/weather/users/sign-in";
-        }
-        Long userId;
-        try {
-            userId = sessionService.getUserIdAndRefreshSession(token);
-        } catch (SessionNotFound e) {
-            return "redirect:/weather/users/sign-in";
-        }
-        try {
-            locationService.deleteLocation(userId, latitude, longitude);
-        } catch (ParseCoordinatesException | DeleteLocationException e) {
-            return "redirect:/weather/users/error";
-        }
+    public String deleteLocation(@RequestParam("latitude") String latitude,
+                                 @RequestParam("longitude") String longitude, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        locationService.deleteLocation(userId, latitude, longitude);
         return "redirect:/weather/users/index";
     }
 

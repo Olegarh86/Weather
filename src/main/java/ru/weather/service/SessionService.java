@@ -2,6 +2,7 @@ package ru.weather.service;
 
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.weather.dao.SessionDao;
 import ru.weather.exception.DeleteSessionException;
@@ -16,6 +17,8 @@ import java.util.UUID;
 @Service
 public class SessionService {
     private final SessionDao sessionDao;
+    @Value("${cookies.maxAge}")
+    private int maxAge;
 
     @Autowired
     public SessionService(SessionDao sessionDao) {
@@ -24,13 +27,13 @@ public class SessionService {
 
     public void createNewSession(UUID uuid, Long id) {
         Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(3600);
+        Instant expiresAt = now.plusSeconds(maxAge);
         sessionDao.addSession(new WeatherSession(uuid, id), expiresAt);
     }
 
     public Long getUserIdAndRefreshSession(String token) {
         Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(3600);
+        Instant expiresAt = now.plusSeconds(maxAge);
         UUID uuid = parseUuid(token);
         Optional<Long> userIdOptional = sessionDao.getUserIdAndRefreshSession(expiresAt, uuid, now);
         if (userIdOptional.isEmpty()) {

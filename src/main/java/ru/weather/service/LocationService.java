@@ -40,7 +40,7 @@ public class LocationService {
             try {
                 weather = apiService.getWeather(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()));
             } catch (RestClientException e) {
-                throw new ConnectToWeatherServiceException();
+                throw new ConnectToWeatherServiceException(e);
             }
             cardLocations.add(new CardLocationDto(
                     weather.getWeather().get(0).getIcon(),
@@ -61,7 +61,7 @@ public class LocationService {
         try {
             allLocations = apiService.findAllLocations(locationName);
         } catch (RestClientException e) {
-            throw new ConnectToWeatherServiceException();
+            throw new ConnectToWeatherServiceException(e);
         }
         return allLocations;
     }

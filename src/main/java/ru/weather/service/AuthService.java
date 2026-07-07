@@ -2,6 +2,7 @@ package ru.weather.service;
 
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.weather.dto.UserDto;
 import ru.weather.exception.PasswordIncorrectException;
@@ -10,9 +11,14 @@ import java.util.UUID;
 
 @Service
 public class AuthService {
+    private final String cookieKey = "uuid";
+    private final String cookiePath = "/";
+    private final boolean httpOnly = true;
     private final UserProfileService userProfileService;
     private final PasswordEncoderService passwordEncoderService;
     private final SessionService sessionService;
+    @Value("${cookies.maxAge}")
+    private int maxAge;
 
     @Autowired
     public AuthService(UserProfileService userProfileService, PasswordEncoderService passwordEncoderService,
@@ -36,18 +42,18 @@ public class AuthService {
     }
 
     private Cookie createNewCookie(UUID uuid) {
-        Cookie cookie = new Cookie("uuid", uuid.toString());
-        cookie.setMaxAge(3600);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
+        Cookie cookie = new Cookie(cookieKey, uuid.toString());
+        cookie.setMaxAge(maxAge);
+        cookie.setPath(cookiePath);
+        cookie.setHttpOnly(httpOnly);
         return cookie;
     }
 
     public Cookie cleanUpCookie() {
-        Cookie cookie = new Cookie("uuid", "");
+        Cookie cookie = new Cookie(cookieKey, "");
         cookie.setMaxAge(0);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
+        cookie.setPath(cookiePath);
+        cookie.setHttpOnly(httpOnly);
         return cookie;
     }
 }

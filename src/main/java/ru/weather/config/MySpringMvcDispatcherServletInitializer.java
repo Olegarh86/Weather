@@ -2,6 +2,7 @@ package ru.weather.config;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRegistration;
 import org.jspecify.annotations.Nullable;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
@@ -14,7 +15,7 @@ public class MySpringMvcDispatcherServletInitializer extends AbstractAnnotationC
 
     @Override
     protected Class<?> @Nullable [] getServletConfigClasses() {
-        return new Class[] {SpringConfig.class};
+        return new Class[] {WeatherConfig.class};
     }
 
     @Override
@@ -31,5 +32,10 @@ public class MySpringMvcDispatcherServletInitializer extends AbstractAnnotationC
     private void registerHiddenFieldFilter(ServletContext servletContext) {
         servletContext.addFilter("hiddenHttpMethodFilter", new HiddenHttpMethodFilter())
                 .addMappingForUrlPatterns(null, true, "/*");
+    }
+
+    @Override
+    protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+        registration.setInitParameter("throwExceptionIfNoHandlerFound","true");
     }
 }
