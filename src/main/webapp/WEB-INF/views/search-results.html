@@ -50,7 +50,7 @@
                         <form class="card-body d-flex flex-column" method="POST" th:action="@{/weather/users/locations/add}">
                             <h5 class="card-title" th:text="${location.name}"></h5>
                             <input type="hidden" name="name" th:value="${locationName}"/>
-                            <input type="hidden" name="user_id" th:value="${id}"/>
+                            <input type="hidden" name="userId" th:value="${id}"/>
                             <p class="card-text mb-1" th:text="|Latitude: ${location.lat}|"></p>
                             <input type="hidden" name="latitude" th:value="${location.lat}"/>
                             <p class="card-text mb-1" th:text="|Longitude: ${location.lon}|"></p>

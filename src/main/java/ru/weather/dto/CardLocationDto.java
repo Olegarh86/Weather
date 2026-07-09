@@ -1,5 +1,6 @@
 package ru.weather.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,8 @@ public class CardLocationDto {
     private String temp;
     private String name;
     private String country;
-    private String feels_like;
+    @JsonProperty("feels_like")
+    private String feelsLike;
     private String description;
     private String humidity;
     private String latitude;

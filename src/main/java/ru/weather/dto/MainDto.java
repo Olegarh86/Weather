@@ -14,10 +14,5 @@ public class MainDto {
     private String tempMin;
     @JsonProperty("temp_max")
     private String tempMax;
-    private String pressure;
     private String humidity;
-    @JsonProperty("sea_level")
-    private String seaLevel;
-    @JsonProperty("grnd_level")
-    private String grndLevel;
 }

@@ -1,5 +1,6 @@
 package ru.weather.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class WeatherLocation {
     private String name;
-    private Long user_id;
+    @JsonProperty("user_id")
+    private Long userId;
     private Double latitude;
     private Double longitude;
 }

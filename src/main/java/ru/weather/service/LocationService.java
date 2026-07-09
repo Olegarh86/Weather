@@ -70,7 +70,7 @@ public class LocationService {
         try {
             WeatherLocation weatherLocation = new WeatherLocation(
                     location.getName(),
-                    Long.valueOf(location.getUser_id()),
+                    Long.valueOf(location.getUserId()),
                     Double.valueOf(location.getLatitude()),
                     Double.valueOf(location.getLongitude()));
             locationDao.saveLocation(weatherLocation);

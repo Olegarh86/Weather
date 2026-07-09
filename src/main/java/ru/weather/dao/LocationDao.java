@@ -24,7 +24,7 @@ public class LocationDao {
 
     public void saveLocation(WeatherLocation location) {
         jdbcTemplate.update("INSERT INTO locations (name, user_id, latitude, longitude) VALUES (?,?,?,?)",
-                location.getName(), location.getUser_id(), location.getLatitude(), location.getLongitude());
+                location.getName(), location.getUserId(), location.getLatitude(), location.getLongitude());
     }
 
     public void deleteLocation(Long userId, Double latitude, Double longitude) {
