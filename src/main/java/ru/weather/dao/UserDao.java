@@ -1,6 +1,7 @@
 package ru.weather.dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -13,7 +14,7 @@ public class UserDao {
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public UserDao(JdbcTemplate jdbcTemplate) {
+    public UserDao(@Lazy JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

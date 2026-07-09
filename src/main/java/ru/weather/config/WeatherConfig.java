@@ -22,8 +22,10 @@ import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring6.view.ThymeleafViewResolver;
 import ru.weather.interceptor.AuthInterceptor;
 import ru.weather.service.SessionService;
+import ru.weather.service.UserProfileService;
 
 import javax.sql.DataSource;
+import java.util.Objects;
 
 @Configuration
 @EnableWebMvc
@@ -33,6 +35,7 @@ import javax.sql.DataSource;
 public class WeatherConfig implements WebMvcConfigurer {
     private final ApplicationContext applicationContext;
     private SessionService sessionService;
+    private UserProfileService userProfileService;
     @Value("${db.driver}")
     private String dbDriver;
     @Value("${db.url}")
@@ -45,9 +48,11 @@ public class WeatherConfig implements WebMvcConfigurer {
     private int timeout;
 
     @Autowired
-    public WeatherConfig(ApplicationContext applicationContext, SessionService sessionService) {
+    public WeatherConfig(ApplicationContext applicationContext, SessionService sessionService,
+                         UserProfileService userProfileService) {
         this.applicationContext = applicationContext;
         this.sessionService = sessionService;
+        this.userProfileService = userProfileService;
     }
 
     protected WeatherConfig() {
@@ -57,7 +62,7 @@ public class WeatherConfig implements WebMvcConfigurer {
     @Bean
     public SpringResourceTemplateResolver templateResolver() {
         SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
-        templateResolver.setApplicationContext(applicationContext);
+        templateResolver.setApplicationContext(Objects.requireNonNull(applicationContext));
         templateResolver.setPrefix("/WEB-INF/views/");
         templateResolver.setSuffix(".html");
         templateResolver.setCharacterEncoding("UTF-8");
@@ -131,7 +136,7 @@ public class WeatherConfig implements WebMvcConfigurer {
 
     @Bean
     public AuthInterceptor authInterceptor() {
-        return new AuthInterceptor(sessionService);
+        return new AuthInterceptor(sessionService, userProfileService);
     }
 
     @Override

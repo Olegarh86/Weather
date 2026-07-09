@@ -13,10 +13,7 @@ public class PasswordEncoderService {
     }
 
     public String encodePassword(UserSignUpDto userSignUpDto) {
-        if (userSignUpDto.getPassword().equals(userSignUpDto.getPasswordConfirm())) {
-            return encoder.encode(userSignUpDto.getPassword());
-        }
-        return "";
+        return encoder.encode(userSignUpDto.getPassword());
     }
 
     public boolean matches(String password, String password1) {

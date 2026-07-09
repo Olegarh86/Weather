@@ -3,17 +3,22 @@ package ru.weather.interceptor;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 import ru.weather.exception.SessionNotFound;
 import ru.weather.service.SessionService;
+import ru.weather.service.UserProfileService;
 
 public class AuthInterceptor implements HandlerInterceptor {
     private final SessionService sessionService;
+    private final UserProfileService userProfileService;
 
     @Autowired
-    public AuthInterceptor(SessionService sessionService) {
+    public AuthInterceptor(SessionService sessionService, UserProfileService userProfileService) {
         this.sessionService = sessionService;
+        this.userProfileService = userProfileService;
     }
 
     @Override
@@ -31,7 +36,9 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (token != null) {
             try {
                 Long userId = sessionService.getUserIdAndRefreshSession(token);
+                String login = userProfileService.getLogin(userId);
                 request.setAttribute("userId", userId);
+                request.setAttribute("login", login);
                 return true;
             } catch (SessionNotFound e) {
                 response.sendRedirect(request.getContextPath() + "/weather/users/sign-in");
@@ -40,5 +47,12 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
         response.sendRedirect(request.getContextPath() + "/weather/users/sign-in");
         return false;
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, @Nullable ModelAndView modelAndView) throws Exception {
+        if (modelAndView != null && request.getAttribute("login") != null) {
+            modelAndView.addObject("login", request.getAttribute("login"));
+        }
     }
 }

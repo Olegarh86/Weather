@@ -1,8 +1,8 @@
 package ru.weather.service;
 
-import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import ru.weather.dao.SessionDao;
 import ru.weather.exception.DeleteSessionException;
@@ -46,7 +46,7 @@ public class SessionService {
         UUID uuid = parseUuid(token);
         try {
             sessionDao.deleteSession(uuid);
-        } catch (Exception e) {
+        } catch (DataAccessException e) {
             throw new DeleteSessionException();
         }
     }

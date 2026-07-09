@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import ru.weather.exception.*;
 
 @Slf4j
 @ControllerAdvice
@@ -17,15 +16,7 @@ public class GlobalExceptionHandler {
     public String handleNoHandlerFoundException(NoHandlerFoundException ex, Model model) {
         log.warn(ex.getMessage());
         model.addAttribute("message", ex.getMessage());
-        return "/error";
-    }
-
-    @ExceptionHandler(ConnectToWeatherServiceException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public String connectException(ConnectToWeatherServiceException ex, Model model) {
-        log.error(ex.getMessage(), ex);
-        model.addAttribute("message", ex.getMessage());
-        return "/error";
+        return "error";
     }
 
     @ExceptionHandler(Exception.class)
@@ -33,6 +24,6 @@ public class GlobalExceptionHandler {
     public String handleException(Exception ex, Model model) {
         log.error(ex.getMessage(), ex);
         model.addAttribute("message", ex.getMessage());
-        return "/error";
+        return "error";
     }
 }
