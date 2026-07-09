@@ -1,7 +1,7 @@
 package ru.weather.exception;
 
 public class ParseUuidException extends RuntimeException {
-    public ParseUuidException() {
-        super("An error occurred while trying to parse the UUID");
+    public ParseUuidException(Exception e) {
+        super("An error occurred while trying to parse the UUID", e);
     }
 }

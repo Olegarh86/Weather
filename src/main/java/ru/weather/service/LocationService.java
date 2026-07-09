@@ -31,7 +31,7 @@ public class LocationService {
         try {
             locations = locationDao.getLocationsByUserId(userId);
         } catch (DataAccessException e) {
-            throw new GetLocationsByUserIdException();
+            throw new GetLocationsByUserIdException(e);
         }
         List<CardLocationDto> cardLocations = new ArrayList<>();
 

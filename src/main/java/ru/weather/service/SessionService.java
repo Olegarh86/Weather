@@ -47,7 +47,7 @@ public class SessionService {
         try {
             sessionDao.deleteSession(uuid);
         } catch (DataAccessException e) {
-            throw new DeleteSessionException();
+            throw new DeleteSessionException(e);
         }
     }
 
@@ -56,7 +56,7 @@ public class SessionService {
         try {
             uuid = UUID.fromString(token);
         } catch (IllegalArgumentException e) {
-            throw new ParseUuidException();
+            throw new ParseUuidException(e);
         }
         return uuid;
     }

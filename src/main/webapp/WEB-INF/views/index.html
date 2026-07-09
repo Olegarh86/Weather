@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <link rel="icon" type="image/png" href="/resources/images/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/resources/images/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/resources/images/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/resources/images/favicon/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
+    <link rel="manifest" href="/resources/images/favicon/site.webmanifest" />
     <meta charset="UTF-8">
     <title>Weather Viewer – Homepage</title>
     <link rel="stylesheet" th:href="@{/resources/css/bootstrap.min.css}">
@@ -11,7 +17,7 @@
 <nav class="navbar navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand" th:href="@{/weather/users/index}">
-            <img th:src="@{/resources/images/weather-app.png}" alt="" width="30" height="24"
+            <img th:src="@{/resources/images/favicon/weather-app.png}" alt="" width="30" height="24"
                  class="d-inline-block align-text-top">
             Weather Tracker
         </a>
