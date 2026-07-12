@@ -1,0 +1,17 @@
+<form th:fragment="search-form"
+      class="d-flex my-4"
+      method="GET"
+      th:action="@{/weather/users/search-results}">
+    <div class="input-group location-search-input-group me-3">
+        <input class="form-control"
+               name="location"
+               placeholder="Enter location" required
+               th:value="${locationName}"
+               type="text">
+        <button class="btn btn-outline-secondary btn-sm clear-input-button" onclick="this.previousElementSibling.value=''"
+                type="button">
+            &times;
+        </button>
+    </div>
+    <button class="btn btn-outline-success" type="submit">Search</button>
+</form>

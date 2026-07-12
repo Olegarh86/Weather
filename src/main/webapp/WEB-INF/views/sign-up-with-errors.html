@@ -1,19 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <link rel="icon" type="image/png" href="/resources/images/favicon/favicon-96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="/resources/images/favicon/favicon.svg" />
-    <link rel="shortcut icon" href="/resources/images/favicon/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/resources/images/favicon/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
-    <link rel="manifest" href="/resources/images/favicon/site.webmanifest" />
-    <meta charset="UTF-8">
-    <title>Weather Viewer – Sign Up</title>
-    <link rel="stylesheet" th:href="@{/resources/css/bootstrap.min.css}">
-    <link rel="stylesheet" th:href="@{/resources/css/style.css}">
-</head>
+<head th:replace="~{fragments/head :: head('Weather Viewer – Sign Up')}"></head>
 <body>
-
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-6">
@@ -23,40 +11,40 @@
     <h2 class="text-center mb-5">Sign Up</h2>
     <div class="row justify-content-center">
         <div class="col-12 col-lg-4 col-md-6 col-sm-12">
-            <form th:action="@{/weather/users}" th:object="${userSignUpDto}" method="POST" class="mt-4">
+            <form class="mt-4" method="POST" th:action="@{/weather/users}" th:object="${userSignUpDto}">
                 <div class="row justify-content-center" th:if="${#fields.hasErrors('passwordConfirm')}">
                     <div class="col-12 col-lg-4 col-md-6 col-sm-12">
-                        <div class="alert alert-danger" role="alert"  th:errors="*{passwordConfirm}">
+                        <div class="alert alert-danger" role="alert" th:errors="*{passwordConfirm}">
                             Passwords don't match.
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label th:for="login" class="form-label">Username</label>
+                    <label class="form-label" th:for="login">Username</label>
                     <div class="input-group has-validation">
-                        <input type="text" class="form-control is-invalid" th:value="*{login}" required/>
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('login')}" th:errors="*{login}">
+                        <input class="form-control is-invalid" required th:value="*{login}" type="text"/>
+                        <div class="invalid-feedback" th:errors="*{login}" th:if="${#fields.hasErrors('login')}">
                             Account with this login already exists.
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label th:for="password" class="form-label">Password</label>
+                    <label class="form-label" th:for="password">Password</label>
                     <div class="input-group has-validation">
-                        <input type="password" class="form-control is-invalid" value="" required/>
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
+                        <input class="form-control is-invalid" required type="password" value=""/>
+                        <div class="invalid-feedback" th:errors="*{password}" th:if="${#fields.hasErrors('password')}">
                             Password should be between 8 and 64 characters.
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label th:for="passwordConfirm" class="form-label">Repeat password</label>
-                    <input type="password" class="form-control" th:name="passwordConfirm" value="" required/>
+                    <label class="form-label" th:for="passwordConfirm">Repeat password</label>
+                    <input class="form-control" required th:name="passwordConfirm" type="password" value=""/>
                 </div>
 
-                <input type="hidden" name="redirect_to" value="/weather/users/sign-in"/>
+                <input name="redirect_to" type="hidden" value="/weather/users/sign-in"/>
 
-                <button type="submit" class="btn btn-primary w-100 mt-3">Sign Up</button>
+                <button class="btn btn-primary w-100 mt-3" type="submit">Sign Up</button>
                 <p class="mt-2 text-center">Already have an account?
                     <a th:href="@{/weather/users/sign-in}">Sign in here</a>
                 </p>

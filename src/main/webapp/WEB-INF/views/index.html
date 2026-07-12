@@ -1,82 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <link rel="icon" type="image/png" href="/resources/images/favicon/favicon-96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="/resources/images/favicon/favicon.svg" />
-    <link rel="shortcut icon" href="/resources/images/favicon/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/resources/images/favicon/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
-    <link rel="manifest" href="/resources/images/favicon/site.webmanifest" />
-    <meta charset="UTF-8">
-    <title>Weather Viewer – Homepage</title>
-    <link rel="stylesheet" th:href="@{/resources/css/bootstrap.min.css}">
-    <link rel="stylesheet" th:href="@{/resources/css/style.css}">
-</head>
+<head th:replace="~{fragments/head :: head('Homepage')}"></head>
 <body>
-
-<nav class="navbar navbar-light bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" th:href="@{/weather/users/index}">
-            <img th:src="@{/resources/images/favicon/weather-app.png}" alt="" width="30" height="24"
-                 class="d-inline-block align-text-top">
-            Weather Tracker
-        </a>
-        <div class="d-flex align-items-center">
-            <span class="navbar-text me-3" th:object="${login}" th:text="${login}">zhukovsd</span>
-            <form method="POST" th:action="@{/weather/users/sign-out}" class="d-inline">
-                <button class="btn btn-outline-danger" type="submit">Sign out</button>
-            </form>
-        </div>
-    </div>
-</nav>
-
+<div th:replace="fragments/header :: header"></div>
 <section id="page-content">
     <div class="container mt-4">
-        <form class="d-flex my-4" method="GET" th:action="@{/weather/users/search-results}">
-            <div class="input-group location-search-input-group me-3">
-                <input class="form-control" type="text" name="location" placeholder="Enter location" required>
-                <button class="btn btn-outline-secondary btn-sm clear-input-button" type="button"
-                        onclick="this.previousElementSibling.value=''">
-                    &times;
-                </button>
-            </div>
-            <button type="submit" class="btn btn-outline-success">Search</button>
-        </form>
-
+        <div th:replace="~{fragments/search-form :: search-form}"></div>
         <div>
             <div class="row">
                 <div class="col-12 col-lg-3 col-md-6 mb-4" th:each="location : ${allLocations}">
-                    <div class="card h-100 position-relative weather-card">
-                        <form class="position-absolute weather-card-delete-form"
-                              th:action="@{/weather/users/locations/delete}" method="POST">
-                            <input type="hidden" name="latitude" th:value="${location.latitude}">
-                            <input type="hidden" name="longitude" th:value="${location.longitude}">
-                            <button class="btn-close" type="submit" aria-label="Delete"></button>
-                        </form>
-                        <img class="card-img-top img-fluid"
-                             th:src="@{|/resources/images/icons/${location.icon}.png|}"
-                             alt="Weather icon">
-                        <div class="card-body d-flex flex-column">
-                            <h1 class="card-text" th:text="|${location.temp} °C|">Temperature °C</h1>
-                            <h3 class="card-title" th:text="|${location.name}, ${location.country}|">City, Country</h3>
-                            <p class="card-text mb-1"
-                               th:text="|Feels like: ${location.feelsLike} °C. ${location.description}|">
-                                Feels like: °C</p>
-                            <p class="card-text mb-1" th:text="|Humidity: ${location.humidity}%|">Humidity: %</p>
-                        </div>
-                    </div>
+                    <div th:replace="~{fragments/weather-card :: weather-card(${location})}"></div>
                 </div>
             </div>
         </div>
     </div>
 </section>
-
-<footer class="d-flex flex-wrap justify-content-between align-items-center py-3 mt-4 border-top">
-    <div class="px-4">
-        <span>© Weather Viewer, project from <a th:href="@{https://zhukovsd.github.io/java-backend-learning-course/}">
-            zhukovsd/java-backend-learning-course</a> roadmap.</span>
-    </div>
-</footer>
-
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

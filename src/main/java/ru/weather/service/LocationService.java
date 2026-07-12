@@ -74,8 +74,9 @@ public class LocationService {
                     Double.valueOf(location.getLatitude()),
                     Double.valueOf(location.getLongitude()));
             locationDao.saveLocation(weatherLocation);
-        } catch (NumberFormatException | DataAccessException e) {
+        } catch (NumberFormatException e) {
             throw new SaveLocationException(e);
+        } catch (DataAccessException ignore) {
         }
     }
 

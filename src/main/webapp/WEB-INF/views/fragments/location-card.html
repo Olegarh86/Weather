@@ -1,0 +1,17 @@
+<div th:fragment="location-card(location)" th:object="${location}" class="card h-100">
+    <form class="card-body d-flex flex-column" method="POST"
+          th:action="@{/weather/users/locations/add}">
+        <h5 class="card-title" th:text="${location.name}"></h5>
+        <input name="name" th:value="${locationName}" type="hidden"/>
+        <input name="userId" th:value="${id}" type="hidden"/>
+        <p class="card-text mb-1" th:text="|Latitude: ${location.lat}|"></p>
+        <input name="latitude" th:value="${location.lat}" type="hidden"/>
+        <p class="card-text mb-1" th:text="|Longitude: ${location.lon}|"></p>
+        <input name="longitude" th:value="${location.lon}" type="hidden"/>
+        <p class="card-text mb-1" th:text="|Country: ${location.country}|"></p>
+        <p class="card-text mb-3" th:text="|State: ${location.state}|"></p>
+        <div class="mt-auto">
+            <button class="btn btn-primary w-100" type="submit">Add</button>
+        </div>
+    </form>
+</div>

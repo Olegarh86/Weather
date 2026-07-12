@@ -1,17 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <link rel="icon" type="image/png" href="/resources/images/favicon/favicon-96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="/resources/images/favicon/favicon.svg" />
-    <link rel="shortcut icon" href="/resources/images/favicon/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/resources/images/favicon/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-title" content="MyWebSite" />
-    <link rel="manifest" href="/resources/images/favicon/site.webmanifest" />
-    <meta charset="UTF-8">
-    <title>Weather Viewer – Sign In</title>
-    <link rel="stylesheet" th:href="@{/resources/css/bootstrap.min.css}">
-    <link rel="stylesheet" th:href="@{/resources/css/style.css}">
-</head>
+<head th:replace="~{fragments/head :: head('Weather Viewer – Sign In')}"></head>
 <body>
 
 <div class="container">
@@ -33,30 +22,31 @@
 
     <div class="row justify-content-center">
         <div class="col-12 col-lg-4 col-md-6 col-sm-12">
-            <form method="POST" th:object="${userSignInDto}" th:action="@{/weather/users/login}" class="mt-4">
+            <form class="mt-4" method="POST" th:action="@{/weather/users/login}" th:object="${userSignInDto}">
                 <div class="mb-3">
-                    <label th:for="login" class="form-label">Username</label>
+                    <label class="form-label" th:for="login">Username</label>
                     <div class="input-group has-validation">
-                        <input type="text" class="form-control is-invalid" th:field="*{login}" required/>
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('login')}" th:errors="*{login}">
+                        <input class="form-control is-invalid" required th:field="*{login}" type="text"/>
+                        <div class="invalid-feedback" th:errors="*{login}" th:if="${#fields.hasErrors('login')}">
                             Invalid login.
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label th:for="password" class="form-label">Password</label>
+                    <label class="form-label" th:for="password">Password</label>
                     <div class="input-group has-validation">
-                        <input type="password" class="form-control is-invalid" th:field="*{password}" required/>
-                        <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">
+                        <input class="form-control is-invalid" required th:field="*{password}" type="password"/>
+                        <div class="invalid-feedback" th:errors="*{password}" th:if="${#fields.hasErrors('password')}">
                             Invalid password.
                         </div>
                     </div>
                 </div>
 
-                <input type="hidden" name="redirect_to" value="/weather/users/index"/>
+                <input name="redirect_to" type="hidden" value="/weather/users/index"/>
 
-                <button type="submit" class="btn btn-primary w-100 mt-3">Sign In</button>
-                <p class="mt-2 text-center">Don't have an account? <a th:href="@{/weather/users/sign-up}">Sign up here</a>
+                <button class="btn btn-primary w-100 mt-3" type="submit">Sign In</button>
+                <p class="mt-2 text-center">Don't have an account? <a th:href="@{/weather/users/sign-up}">Sign up
+                    here</a>
                 </p>
             </form>
         </div>
