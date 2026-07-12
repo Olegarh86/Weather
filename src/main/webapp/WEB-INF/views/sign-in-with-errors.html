@@ -2,56 +2,80 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Weather Viewer – Sign In')}"></head>
 <body>
-
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-6">
             <div class="weather-logo"></div>
         </div>
     </div>
-
-    <h2 class="text-center mb-5">Sign In</h2>
-
+    <h2 class="text-center mb-5">
+        Sign In
+    </h2>
     <div class="row justify-content-center">
-        <div class="col-12 col-lg-4 col-md-6 col-sm-12" th:object="${userSignInDto}">
-            <div class="alert alert-danger" role="alert" th:if="${#fields.hasErrors('*')}">
+        <div class="col-12 col-lg-4 col-md-6 col-sm-12"
+             th:object="${userSignInDto}">
+            <div class="alert alert-danger"
+                 role="alert"
+                 th:if="${#fields.hasErrors('*')}">
                 Invalid username or password.
             </div>
         </div>
     </div>
-
     <div class="row justify-content-center">
         <div class="col-12 col-lg-4 col-md-6 col-sm-12">
-            <form class="mt-4" method="POST" th:action="@{/weather/users/login}" th:object="${userSignInDto}">
+            <form class="mt-4" method="POST"
+                  th:action="@{/weather/users/login}"
+                  th:object="${userSignInDto}">
                 <div class="mb-3">
-                    <label class="form-label" th:for="login">Username</label>
+                    <label class="form-label"
+                           th:for="login">
+                        Username
+                    </label>
                     <div class="input-group has-validation">
-                        <input class="form-control is-invalid" required th:field="*{login}" type="text"/>
-                        <div class="invalid-feedback" th:errors="*{login}" th:if="${#fields.hasErrors('login')}">
+                        <input class="form-control is-invalid"
+                               required
+                               th:field="*{login}"
+                               type="text"/>
+                        <div class="invalid-feedback"
+                             th:errors="*{login}"
+                             th:if="${#fields.hasErrors('login')}">
                             Invalid login.
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" th:for="password">Password</label>
+                    <label class="form-label"
+                           th:for="password">
+                        Password
+                    </label>
                     <div class="input-group has-validation">
-                        <input class="form-control is-invalid" required th:field="*{password}" type="password"/>
-                        <div class="invalid-feedback" th:errors="*{password}" th:if="${#fields.hasErrors('password')}">
+                        <input class="form-control is-invalid"
+                               required
+                               th:field="*{password}"
+                               type="password"/>
+                        <div class="invalid-feedback"
+                             th:errors="*{password}"
+                             th:if="${#fields.hasErrors('password')}">
                             Invalid password.
                         </div>
                     </div>
                 </div>
-
-                <input name="redirect_to" type="hidden" value="/weather/users/index"/>
-
-                <button class="btn btn-primary w-100 mt-3" type="submit">Sign In</button>
-                <p class="mt-2 text-center">Don't have an account? <a th:href="@{/weather/users/sign-up}">Sign up
-                    here</a>
+                <input name="redirect_to"
+                       type="hidden"
+                       value="/weather/users/index"/>
+                <button class="btn btn-primary w-100 mt-3"
+                        type="submit">
+                    Sign In
+                </button>
+                <p class="mt-2 text-center">
+                    Don't have an account?
+                    <a th:href="@{/weather/users/sign-up}">
+                        Sign up here
+                    </a>
                 </p>
             </form>
         </div>
     </div>
 </div>
-
 </body>
 </html>

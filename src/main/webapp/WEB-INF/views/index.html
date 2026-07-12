@@ -2,15 +2,14 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Homepage')}"></head>
 <body>
-<div th:replace="fragments/header :: header"></div>
+<div th:replace="~{fragments/header :: header}"></div>
 <section id="page-content">
     <div class="container mt-4">
         <div th:replace="~{fragments/search-form :: search-form}"></div>
-        <div>
-            <div class="row">
-                <div class="col-12 col-lg-3 col-md-6 mb-4" th:each="location : ${allLocations}">
-                    <div th:replace="~{fragments/weather-card :: weather-card(${location})}"></div>
-                </div>
+        <div class="row">
+            <div class="col-12 col-lg-3 col-md-6 mb-4"
+                 th:each="location : ${allLocations}">
+                <div th:replace="~{fragments/weather-card :: weather-card(${location})}"></div>
             </div>
         </div>
     </div>

@@ -3,9 +3,17 @@
 <head th:replace="~{fragments/head :: head('ErrorPage')}"></head>
 <body>
 <div class="container text-center mt-5">
-    <h1 class="display-4">Oops! Something Went Wrong</h1>
-    <p class="lead" th:text="${message}">We're sorry, but an unexpected error has occurred. Please try again later.</p>
-    <a class="btn btn-primary" th:href="@{/weather/users/index}">Go to Home</a>
+    <h1 class="display-4">
+        Oops! Something Went Wrong
+    </h1>
+    <p class="lead"
+       th:text="${message}">
+        We're sorry, but an unexpected error has occurred. Please try again later.
+    </p>
+    <a class="btn btn-primary"
+       th:href="@{/weather/users/index}">
+        Go to Home
+    </a>
 </div>
 </body>
 </html>

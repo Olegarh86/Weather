@@ -24,7 +24,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String uri = request.getRequestURI();
-        if ("/weather/users/sign-up".equals(uri) || "/weather/users/sign-in".equals(uri) ||
+        if ("/weather/users/sign-up".equals(uri) || "/weather/users/sign-in".equals(uri) || "/weather/users".equals(uri) ||
             "/weather/users/login".equals(uri) || "/weather/users/error".equals(uri) || uri.startsWith("/resources")) {
             return true;
         }

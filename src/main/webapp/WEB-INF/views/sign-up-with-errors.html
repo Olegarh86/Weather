@@ -11,40 +11,72 @@
     <h2 class="text-center mb-5">Sign Up</h2>
     <div class="row justify-content-center">
         <div class="col-12 col-lg-4 col-md-6 col-sm-12">
-            <form class="mt-4" method="POST" th:action="@{/weather/users}" th:object="${userSignUpDto}">
-                <div class="row justify-content-center" th:if="${#fields.hasErrors('passwordConfirm')}">
+            <form class="mt-4"
+                  method="POST"
+                  th:action="@{/weather/users}"
+                  th:object="${userSignUpDto}">
+                <div class="row justify-content-center"
+                     th:if="${#fields.hasErrors('passwordConfirm')}">
                     <div class="col-12 col-lg-4 col-md-6 col-sm-12">
-                        <div class="alert alert-danger" role="alert" th:errors="*{passwordConfirm}">
+                        <div class="alert alert-danger"
+                             role="alert"
+                             th:errors="*{passwordConfirm}">
                             Passwords don't match.
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" th:for="login">Username</label>
+                    <label class="form-label"
+                           th:for="login">
+                        Username
+                    </label>
                     <div class="input-group has-validation">
-                        <input class="form-control is-invalid" required th:value="*{login}" type="text"/>
-                        <div class="invalid-feedback" th:errors="*{login}" th:if="${#fields.hasErrors('login')}">
+                        <input class="form-control is-invalid"
+                               required
+                               th:value="*{login}"
+                               type="text"/>
+                        <div class="invalid-feedback"
+                             th:errors="*{login}"
+                             th:if="${#fields.hasErrors('login')}">
                             Account with this login already exists.
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" th:for="password">Password</label>
+                    <label class="form-label"
+                           th:for="password">
+                        Password
+                    </label>
                     <div class="input-group has-validation">
-                        <input class="form-control is-invalid" required type="password" value=""/>
-                        <div class="invalid-feedback" th:errors="*{password}" th:if="${#fields.hasErrors('password')}">
+                        <input class="form-control is-invalid"
+                               required
+                               type="password"
+                               value=""/>
+                        <div class="invalid-feedback"
+                             th:errors="*{password}"
+                             th:if="${#fields.hasErrors('password')}">
                             Password should be between 8 and 64 characters.
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" th:for="passwordConfirm">Repeat password</label>
-                    <input class="form-control" required th:name="passwordConfirm" type="password" value=""/>
+                    <label class="form-label"
+                           th:for="passwordConfirm">
+                        Repeat password
+                    </label>
+                    <input class="form-control"
+                           required
+                           th:name="passwordConfirm"
+                           type="password"
+                           value=""/>
                 </div>
-
-                <input name="redirect_to" type="hidden" value="/weather/users/sign-in"/>
-
-                <button class="btn btn-primary w-100 mt-3" type="submit">Sign Up</button>
+                <input name="redirect_to"
+                       type="hidden"
+                       value="/weather/users/sign-in"/>
+                <button class="btn btn-primary w-100 mt-3"
+                        type="submit">
+                    Sign Up
+                </button>
                 <p class="mt-2 text-center">Already have an account?
                     <a th:href="@{/weather/users/sign-in}">Sign in here</a>
                 </p>

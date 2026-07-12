@@ -8,31 +8,58 @@
             <div class="weather-logo"></div>
         </div>
     </div>
-
     <h2 class="text-center mb-5">Sign Up</h2>
-
     <div class="row justify-content-center">
         <div class="col-12 col-lg-4 col-md-6 col-sm-12">
-            <form class="mt-4" method="POST" th:action="@{/weather/users}" th:object="${userSignUpDto}">
+            <form class="mt-4"
+                  method="POST"
+                  th:action="@{/weather/users}"
+                  th:object="${userSignUpDto}">
                 <div class="mb-3">
-                    <label class="form-label" th:for="login">Username</label>
-                    <input class="form-control" maxlength="20" minlength="2" required th:field="*{login}" type="text"/>
+                    <label class="form-label"
+                           th:for="login">
+                        Username
+                    </label>
+                    <input class="form-control"
+                           maxlength="20"
+                           minlength="2"
+                           required
+                           th:field="*{login}"
+                           type="text"/>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" th:for="password">Password</label>
-                    <input class="form-control" maxlength="64" minlength="8" required th:field="*{password}"
+                    <label class="form-label"
+                           th:for="password">
+                        Password
+                    </label>
+                    <input class="form-control"
+                           maxlength="64"
+                           minlength="8"
+                           required
+                           th:field="*{password}"
                            type="password"/>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label" th:for="passwordConfirm">Repeat password</label>
-                    <input class="form-control" maxlength="64" minlength="8" required
-                           th:field="*{passwordConfirm}" type="password"/>
+                    <label class="form-label"
+                           th:for="passwordConfirm">
+                        Repeat password
+                    </label>
+                    <input class="form-control"
+                           maxlength="64"
+                           minlength="8"
+                           required
+                           th:field="*{passwordConfirm}"
+                           type="password"/>
                 </div>
-
-                <input name="redirect_to" type="hidden" value="/weather/users/sign-in"/>
-
-                <button class="btn btn-primary w-100 mt-3" type="submit">Sign Up</button>
-                <p class="mt-2 text-center">Already have an account?
+                <input name="redirect_to"
+                       type="hidden"
+                       value="/weather/users/sign-in"/>
+                <button class="btn btn-primary w-100 mt-3"
+                        type="submit">
+                    Sign Up
+                </button>
+                <p class="mt-2 text-center">
+                    Already have an account?
                     <a th:href="@{/weather/users/sign-in}">Sign in here</a>
                 </p>
             </form>
