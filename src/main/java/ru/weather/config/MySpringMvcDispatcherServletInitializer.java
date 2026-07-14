@@ -3,18 +3,17 @@ package ru.weather.config;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRegistration;
-import org.jspecify.annotations.Nullable;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 public class MySpringMvcDispatcherServletInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
     @Override
-    protected Class<?> @Nullable [] getRootConfigClasses() {
+    protected Class<?> [] getRootConfigClasses() {
         return null;
     }
 
     @Override
-    protected Class<?> @Nullable [] getServletConfigClasses() {
+    protected Class<?> [] getServletConfigClasses() {
         return new Class[] {WeatherConfig.class};
     }
 
@@ -26,6 +25,7 @@ public class MySpringMvcDispatcherServletInitializer extends AbstractAnnotationC
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
         super.onStartup(servletContext);
+        servletContext.setInitParameter("spring.profiles.active", "prod");
         registerHiddenFieldFilter(servletContext);
     }
 
