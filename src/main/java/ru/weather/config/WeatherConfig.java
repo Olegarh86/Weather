@@ -32,7 +32,7 @@ import java.util.Objects;
 @EnableScheduling
 @EnableTransactionManagement
 @ComponentScan("ru.weather")
-@PropertySource("classpath:application.properties")
+@PropertySource("classpath:application-${spring.profiles.active:prod}.properties")
 public class WeatherConfig implements WebMvcConfigurer {
     private final ApplicationContext applicationContext;
     private SessionService sessionService;
@@ -91,22 +91,10 @@ public class WeatherConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    @Profile("prod")
-    public DataSource prodDataSource() {
+    public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(dbDriver);
         dataSource.setUrl(dbUrl);
-        dataSource.setUsername(dbUsername);
-        dataSource.setPassword(dbPassword);
-        return dataSource;
-    }
-
-    @Bean
-    @Profile("test")
-    public DataSource testDataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(dbDriver);
-        dataSource.setUrl("jdbc:postgresql://localhost:5432/weather_test");
         dataSource.setUsername(dbUsername);
         dataSource.setPassword(dbPassword);
         return dataSource;

@@ -57,13 +57,11 @@ public class LocationService {
     }
 
     public ResponseWithCoordinates[] findAllLocationsByName(String locationName) {
-        ResponseWithCoordinates[] allLocations;
         try {
-            allLocations = apiService.findAllLocations(locationName);
+            return apiService.findAllLocations(locationName);
         } catch (RestClientException e) {
             throw new ConnectToWeatherServiceException(e);
         }
-        return allLocations;
     }
 
     public void saveNewLocation(UserLocationsDto location) {

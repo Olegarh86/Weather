@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.weather.exception.SessionNotFound;
 import ru.weather.model.WeatherSession;
 
 import java.sql.Timestamp;
@@ -23,7 +24,7 @@ public class SessionDao {
 
     public Optional<Long> getUserIdAndRefreshSession(Instant expiresAt, UUID uuid, Instant now) {
         try {
-            return Optional.ofNullable(jdbcTemplate.queryForObject("""
+            return Optional.of(jdbcTemplate.queryForObject("""
                             UPDATE sessions
                             SET expires_at = ?
                             WHERE id = ?
@@ -37,12 +38,24 @@ public class SessionDao {
 
     public void addSession(WeatherSession weatherSession, Instant expiresAt) {
         jdbcTemplate.update("INSERT INTO sessions (id,user_id, expires_at) VALUES (?,?,?)",
-                weatherSession.getUuid(),
-                weatherSession.getUserId(),
+                weatherSession.uuid(),
+                weatherSession.userId(),
                 Timestamp.from(expiresAt));
     }
 
     public void deleteSession(UUID uuid) {
-        jdbcTemplate.update("DELETE FROM sessions WHERE id= ?", uuid);
+        jdbcTemplate.update("DELETE FROM sessions WHERE id = ?", uuid);
+    }
+
+    public Long getSession(UUID uuid) {
+        try {
+            return jdbcTemplate.queryForObject("""
+                    SELECT sessions.user_id
+                    FROM sessions
+                    WHERE id = ?"""
+                    , Long.class, uuid);
+        } catch (EmptyResultDataAccessException e) {
+            throw new SessionNotFound();
+        }
     }
 }

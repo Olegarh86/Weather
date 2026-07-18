@@ -60,4 +60,12 @@ public class SessionService {
         }
         return uuid;
     }
+
+    public Long getSession(UUID uuid) {
+        Long id = sessionDao.getSession(uuid);
+        if (id == null) {
+            throw new SessionNotFound();
+        }
+        return id;
+    }
 }

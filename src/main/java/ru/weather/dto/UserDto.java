@@ -9,11 +9,11 @@ import lombok.Setter;
 @Getter
 public class UserDto {
     private Long id;
-    @NotEmpty(message = "Login should not be empty")
-    @Size(min = 2, max = 20, message = "Name should be between 2 and 20 characters")
+    @NotEmpty(message = "{NotEmpty.weatherUser.login}")
+    @Size(min = 2, max = 20, message = "{Size.weatherUser.login}")
     private String login;
-    @NotEmpty(message = "Password should not be empty")
-    @Size(min = 8, max = 64, message = "Password should be between 8 and 64 characters")
+    @NotEmpty(message = "{NotEmpty.weatherUser.password}")
+    @Size(min = 8, max = 64, message = "{Size.weatherUser.password}")
     private String password;
 
     public UserDto() {

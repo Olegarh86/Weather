@@ -1,3 +1,14 @@
-db.url=your_url
-db.username=your_username
-db.password=your_password
+db.driver=
+db.url=
+db.username=
+db.password=
+timeout=
+weather.findLocationsUrl=
+weather.getWeatherUrl=
+weather.units=
+weather.limit=
+weather.apiKey=
+weather.apiKey2=
+weather.apiKey3=
+weather.apiKey4=
+cookies.maxAge=

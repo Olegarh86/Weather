@@ -7,6 +7,9 @@
     <div class="container mt-4">
         <div th:replace="~{fragments/search-form :: search-form}"></div>
         <div class="row">
+            <div th:if="${allLocations == null or #lists.isEmpty(allLocations)}">
+                No locations found, find locations and add for tracking
+            </div>
             <div class="col-12 col-lg-3 col-md-6 mb-4"
                  th:each="location : ${allLocations}">
                 <div th:replace="~{fragments/weather-card :: weather-card(${location})}"></div>

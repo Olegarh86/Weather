@@ -23,7 +23,8 @@
     </div>
     <div class="row justify-content-center">
         <div class="col-12 col-lg-4 col-md-6 col-sm-12">
-            <form class="mt-4" method="POST"
+            <form class="mt-4"
+                  method="POST"
                   th:action="@{/weather/users/login}"
                   th:object="${userSignInDto}">
                 <div class="mb-3">
@@ -33,6 +34,8 @@
                     </label>
                     <div class="input-group has-validation">
                         <input class="form-control is-invalid"
+                               maxlength="20"
+                               minlength="2"
                                required
                                th:field="*{login}"
                                type="text"/>
@@ -50,6 +53,8 @@
                     </label>
                     <div class="input-group has-validation">
                         <input class="form-control is-invalid"
+                               minlength="8"
+                               maxlength="64"
                                required
                                th:field="*{password}"
                                type="password"/>

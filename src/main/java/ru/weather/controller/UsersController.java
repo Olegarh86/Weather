@@ -54,6 +54,10 @@ public class UsersController {
             bindingResult.rejectValue("passwordConfirm", "NotConfirm.weatherUser.password");
             return "sign-up-with-errors";
         }
+        if (userSignUpDto.getPassword().length() < 8) {
+            bindingResult.rejectValue("password", "Size.weatherUser.password");
+            return "sign-up-with-errors";
+        }
         String password = passwordEncoderService.encodePassword(userSignUpDto);
         userSignUpDto.setPassword(password);
         try {
