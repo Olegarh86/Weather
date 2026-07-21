@@ -10,32 +10,33 @@ import ru.weather.exception.PasswordIncorrectException;
 import java.util.UUID;
 
 @Service
-public class AuthService {
+public class AuthServiceImpl implements AuthService {
     private final String cookieKey = "uuid";
     private final String cookiePath = "/";
     private final boolean httpOnly = true;
-    private final UserProfileService userProfileService;
-    private final PasswordEncoderService passwordEncoderService;
-    private final SessionService sessionService;
+    private final UserProfileService userProfileServiceImpl;
+    private final PasswordEncoderService passwordEncoderServiceImpl;
+    private final SessionService sessionServiceImpl;
     @Value("${cookies.maxAge}")
     private int maxAge;
 
     @Autowired
-    public AuthService(UserProfileService userProfileService, PasswordEncoderService passwordEncoderService,
-                       SessionService sessionService) {
-        this.userProfileService = userProfileService;
-        this.passwordEncoderService = passwordEncoderService;
-        this.sessionService = sessionService;
+    public AuthServiceImpl(UserProfileService userProfileServiceImpl, PasswordEncoderService passwordEncoderServiceImpl,
+                           SessionService sessionServiceImpl) {
+        this.userProfileServiceImpl = userProfileServiceImpl;
+        this.passwordEncoderServiceImpl = passwordEncoderServiceImpl;
+        this.sessionServiceImpl = sessionServiceImpl;
     }
 
+    @Override
     public Cookie authenticate(UserDto userDto) {
-        String passwordFromDataBase = userProfileService.getPassword(userDto);
+        String passwordFromDataBase = userProfileServiceImpl.getPassword(userDto);
 
-        if (passwordEncoderService.matches(userDto.getPassword(), passwordFromDataBase)) {
-            Long id = userProfileService.getUserId(userDto);
+        if (passwordEncoderServiceImpl.matches(userDto.getPassword(), passwordFromDataBase)) {
+            Long id = userProfileServiceImpl.getUserId(userDto);
             UUID uuid = UUID.randomUUID();
             Cookie cookie = createNewCookie(uuid);
-            sessionService.createNewSession(uuid, id);
+            sessionServiceImpl.createNewSession(uuid, id);
             return cookie;
         }
         throw new PasswordIncorrectException();
@@ -49,6 +50,7 @@ public class AuthService {
         return cookie;
     }
 
+    @Override
     public Cookie cleanUpCookie() {
         Cookie cookie = new Cookie(cookieKey, "");
         cookie.setMaxAge(0);

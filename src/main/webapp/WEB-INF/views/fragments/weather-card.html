@@ -1,7 +1,7 @@
 <div th:fragment="weather-card(location)" th:object="${location}" class="card h-100 position-relative weather-card">
     <form class="position-absolute weather-card-delete-form"
           method="POST"
-          th:action="@{/weather/users/locations/delete}">
+          th:action="@{/users/locations/delete}">
         <input name="latitude"
                th:value="${location.latitude}"
                type="hidden">

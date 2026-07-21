@@ -1,7 +1,7 @@
 <nav th:fragment="header" class="navbar navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand"
-           th:href="@{/weather/users/index}">
+           th:href="@{/users/index}">
             <img alt=""
                  class="d-inline-block align-text-top"
                  height="24"
@@ -14,7 +14,7 @@
                   th:text="${login}">Login</span>
             <form class="d-inline"
                   method="POST"
-                  th:action="@{/weather/users/sign-out}">
+                  th:action="@{/users/sign-out}">
                 <button class="btn btn-outline-danger"
                         type="submit">Sign out
                 </button>

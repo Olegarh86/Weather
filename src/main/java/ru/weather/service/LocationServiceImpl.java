@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import ru.weather.dao.LocationDao;
-import ru.weather.dao.LocationDaoImpl;
 import ru.weather.dto.CardLocationDto;
 import ru.weather.dto.ResponseWithCoordinates;
 import ru.weather.dto.ResponseWithWeatherDto;
@@ -23,23 +22,25 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Service
-public class LocationService {
+public class LocationServiceImpl implements LocationService {
     private final LocationDao locationDaoImpl;
-    private final ApiService apiService;
+    private final ApiService apiServiceImpl;
     private final AsyncTaskExecutor taskExecutor;
 
     @Autowired
-    public LocationService(LocationDao locationDaoImpl, ApiService apiService, AsyncTaskExecutor taskExecutor) {
+    public LocationServiceImpl(LocationDao locationDaoImpl, ApiService apiServiceImpl, AsyncTaskExecutor taskExecutor) {
         this.locationDaoImpl = locationDaoImpl;
-        this.apiService = apiService;
+        this.apiServiceImpl = apiServiceImpl;
         this.taskExecutor = taskExecutor;
     }
 
+    @Override
     @Cacheable(value = "weather", key = "#userId")
     public CompletableFuture<List<CardLocationDto>> getAllWeathers(Long userId, List<Location> locations) {
         return CompletableFuture.supplyAsync(() -> getCardLocationDto(locations), taskExecutor);
     }
 
+    @Override
     @Cacheable(value = "locations", key = "#userId")
     public List<Location> getLocations(Long userId) {
         try {
@@ -49,40 +50,16 @@ public class LocationService {
         }
     }
 
-    public List<CardLocationDto> getCardLocationDto(List<Location> locations) {
-        List<CardLocationDto> cardLocations = new ArrayList<>();
-
-        for (Location location : locations) {
-            ResponseWithWeatherDto weather;
-            try {
-                String latitude = String.valueOf(location.getLatitude());
-                String longitude = String.valueOf(location.getLongitude());
-                weather = apiService.getWeather(latitude, longitude);
-            } catch (RestClientException e) {
-                throw new ConnectToWeatherServiceException(e);
-            }
-            cardLocations.add(new CardLocationDto(
-                    weather.getWeather().get(0).getIcon(),
-                    weather.getMain().getTemp(),
-                    location.getName(),
-                    weather.getSys().getCountry(),
-                    weather.getMain().getFeelsLike(),
-                    weather.getWeather().get(0).getDescription(),
-                    weather.getMain().getHumidity(),
-                    String.valueOf(location.getLatitude()),
-                    String.valueOf(location.getLongitude())));
-        }
-        return cardLocations;
-    }
-
+    @Override
     public ResponseWithCoordinates[] findAllLocationsByName(String locationName) {
         try {
-            return apiService.findAllLocations(locationName);
+            return apiServiceImpl.findAllLocations(locationName);
         } catch (RestClientException e) {
             throw new ConnectToWeatherServiceException(e);
         }
     }
 
+    @Override
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "locations", key = "T(Long).valueOf(#location.userId)"),
@@ -102,6 +79,7 @@ public class LocationService {
         }
     }
 
+    @Override
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "locations", key = "#userId"),
@@ -120,5 +98,31 @@ public class LocationService {
         } catch (DataAccessException e) {
             throw new DeleteLocationException(e);
         }
+    }
+
+    private List<CardLocationDto> getCardLocationDto(List<Location> locations) {
+        List<CardLocationDto> cardLocations = new ArrayList<>();
+
+        for (Location location : locations) {
+            ResponseWithWeatherDto weather;
+            try {
+                String latitude = String.valueOf(location.getLatitude());
+                String longitude = String.valueOf(location.getLongitude());
+                weather = apiServiceImpl.getWeather(latitude, longitude);
+            } catch (RestClientException e) {
+                throw new ConnectToWeatherServiceException(e);
+            }
+            cardLocations.add(new CardLocationDto(
+                    weather.getWeather().get(0).getIcon(),
+                    weather.getMain().getTemp(),
+                    location.getName(),
+                    weather.getSys().getCountry(),
+                    weather.getMain().getFeelsLike(),
+                    weather.getWeather().get(0).getDescription(),
+                    weather.getMain().getHumidity(),
+                    String.valueOf(location.getLatitude()),
+                    String.valueOf(location.getLongitude())));
+        }
+        return cardLocations;
     }
 }

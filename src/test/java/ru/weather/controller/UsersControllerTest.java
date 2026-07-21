@@ -13,10 +13,12 @@ import org.springframework.ui.Model;
 import ru.weather.dto.CardLocationDto;
 import ru.weather.dto.ResponseWithCoordinates;
 import ru.weather.exception.ConnectToWeatherServiceException;
+import ru.weather.model.Location;
 import ru.weather.service.LocationService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -36,7 +38,7 @@ class UsersControllerTest {
     private Model model;
     private HttpServletRequest req;
     @Mock
-    private LocationService locationService;
+    private LocationService locationServiceImpl;
 
     @InjectMocks
     private UsersController usersController;
@@ -51,10 +53,12 @@ class UsersControllerTest {
     @Test
     void indexSuccessTest() {
         List<CardLocationDto> cardLocationsExpected = getCardLocationDto();
+        List<Location> locations = new ArrayList<>();
 
-        when(locationService.getAllWeathers(USER_ID_VALUE)).thenReturn(cardLocationsExpected);
+        when(locationServiceImpl.getAllWeathers(USER_ID_VALUE, locations))
+                .thenReturn(CompletableFuture.completedFuture(cardLocationsExpected));
 
-        assertEquals("index", usersController.index(req, model));
+        assertEquals("index", usersController.index(req, model).join());
         Object cardLocationDtoResponse = model.getAttribute(ALL_LOCATIONS);
         List<CardLocationDto> cardLocationDtoResult = null;
         if (cardLocationDtoResponse instanceof List<?>) {
@@ -86,7 +90,8 @@ class UsersControllerTest {
 
     @Test
     void indexFailedTest() {
-        when(locationService.getAllWeathers(USER_ID_VALUE)).thenThrow(new ConnectToWeatherServiceException(new Exception()));
+        List<Location> locations = new ArrayList<>();
+        when(locationServiceImpl.getAllWeathers(USER_ID_VALUE, locations)).thenThrow(new ConnectToWeatherServiceException(new Exception()));
         assertThrows(ConnectToWeatherServiceException.class, () -> usersController.index(req, model));
     }
 
@@ -98,7 +103,7 @@ class UsersControllerTest {
         response[0].setLat(LONDON_LAT);
         response[0].setLon(LONDON_LON);
 
-        when(locationService.findAllLocationsByName(LONDON)).thenReturn(response);
+        when(locationServiceImpl.findAllLocationsByName(LONDON)).thenReturn(response);
 
         assertEquals("search-results", usersController.searchResults(LONDON, model, req));
         ResponseWithCoordinates[] allLocations = (ResponseWithCoordinates[]) model.getAttribute(ALL_LOCATIONS);

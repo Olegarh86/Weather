@@ -15,7 +15,7 @@
         <div class="col-12 col-lg-4 col-md-6 col-sm-12"><!--"@{/users/{id}(id=${weatherUser.getId()})}"-->
             <form class="mt-4"
                   method="POST"
-                  th:action="@{/weather/users/login}"
+                  th:action="@{/users/login}"
                   th:object="${userDto}">
                 <div class="mb-3">
                     <label class="form-label"
@@ -42,13 +42,13 @@
                            type="password"/>
                     <input name="redirect_to"
                            type="hidden"
-                           value="/weather/users/index"/>
+                           value="/users/index"/>
                     <button class="btn btn-primary w-100 mt-3"
                             type="submit">
                         Sign In
                     </button>
                     <p class="mt-2 text-center">Don't have an account?
-                        <a th:href="@{/weather/users/sign-up}">Sign up here</a>
+                        <a th:href="@{/users/sign-up}">Sign up here</a>
                     </p>
                 </div>
             </form>

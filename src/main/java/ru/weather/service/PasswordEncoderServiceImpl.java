@@ -5,17 +5,19 @@ import org.springframework.stereotype.Service;
 import ru.weather.dto.UserSignUpDto;
 
 @Service
-public class PasswordEncoderService {
+public class PasswordEncoderServiceImpl implements PasswordEncoderService {
     private final BCryptPasswordEncoder encoder;
 
-    public PasswordEncoderService() {
+    public PasswordEncoderServiceImpl() {
         this.encoder = new BCryptPasswordEncoder();
     }
 
+    @Override
     public String encodePassword(UserSignUpDto userSignUpDto) {
         return encoder.encode(userSignUpDto.getPassword());
     }
 
+    @Override
     public boolean matches(String password, String password1) {
         return encoder.matches(password, password1);
     }

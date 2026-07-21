@@ -14,14 +14,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public class SessionDao {
+public class SessionDaoImpl implements SessionDao {
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public SessionDao(@Lazy JdbcTemplate jdbcTemplate) {
+    public SessionDaoImpl(@Lazy JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Override
     public Optional<Long> getUserIdAndRefreshSession(Instant expiresAt, UUID uuid, Instant now) {
         try {
             return Optional.of(jdbcTemplate.queryForObject("""
@@ -36,6 +37,7 @@ public class SessionDao {
         }
     }
 
+    @Override
     public void addSession(WeatherSession weatherSession, Instant expiresAt) {
         jdbcTemplate.update("INSERT INTO sessions (id,user_id, expires_at) VALUES (?,?,?)",
                 weatherSession.uuid(),
@@ -43,10 +45,12 @@ public class SessionDao {
                 Timestamp.from(expiresAt));
     }
 
+    @Override
     public void deleteSession(UUID uuid) {
         jdbcTemplate.update("DELETE FROM sessions WHERE id = ?", uuid);
     }
 
+    @Override
     public Long getSession(UUID uuid) {
         try {
             return jdbcTemplate.queryForObject("""

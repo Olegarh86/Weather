@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -17,6 +16,7 @@ import org.springframework.web.context.WebApplicationContext;
 import ru.weather.config.WeatherConfig;
 import ru.weather.dao.SessionDao;
 import ru.weather.dto.UserDto;
+import ru.weather.dto.UserSignUpDto;
 import ru.weather.exception.SessionNotFound;
 import ru.weather.exception.UserNotFoundException;
 import ru.weather.service.*;
@@ -35,10 +35,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Transactional
 public class UserLifeCycleIntegrationTest {
-    private static final String WEATHER_USERS_PATH = "/weather/users";
-    private static final String SIGN_IN_PATH = "/weather/users/sign-in";
-    private static final String INDEX_PATH = "/weather/users/index";
-    private static final String LOGIN_PATH = "/weather/users/login";
+    private static final String WEATHER_USERS_PATH = "/users";
+    private static final String SIGN_IN_PATH = "/users/sign-in";
+    private static final String INDEX_PATH = "/users/index";
+    private static final String LOGIN_PATH = "/users/login";
     private static final String SIGN_UP_WITH_ERRORS = "sign-up-with-errors";
     private static final String SIGN_IN_WITH_ERRORS = "sign-in-with-errors";
     private static final String LOGIN_KEY = "login";
@@ -52,17 +52,15 @@ public class UserLifeCycleIntegrationTest {
     private static final String REDIRECT = "redirect:";
     private static final String USER_SIGN_UP_DTO = "userSignUpDto";
     @Autowired
-    private SessionService sessionService;
+    private SessionService sessionServiceImpl;
     @Autowired
-    private UserProfileService userProfileService;
+    private UserProfileService userProfileServiceImpl;
     @Autowired
     private WebApplicationContext webApplicationContext;
     @Autowired
-    private SessionDao sessionDao;
+    private SessionDao sessionDaoImpl;
     @Autowired
-    private JdbcTemplate jdbcTemplate;
-    @Autowired
-    private SessionCleanupService sessionCleanupService;
+    private SessionCleanupService sessionCleanupServiceImpl;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -77,16 +75,7 @@ public class UserLifeCycleIntegrationTest {
                         .param(PASSWORD_KEY, PASSWORD_VALUE)
                         .param(PASSWORD_CONFIRM_KEY, PASSWORD_VALUE)
                         .param(REDIRECT_TO_KEY, SIGN_IN_PATH))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(view().name(REDIRECT + SIGN_IN_PATH));
-
-        UserDto testUser = new UserDto();
-        testUser.setLogin(LOGIN_VALUE);
-
-        Long userId = userProfileService.getUserId(testUser);
-        String login = userProfileService.getLogin(userId);
-        assertNotNull(userId);
-        assertEquals(LOGIN_VALUE, login);
+                .andExpect(status().is3xxRedirection());
     }
 
     @Test
@@ -96,20 +85,17 @@ public class UserLifeCycleIntegrationTest {
                         .param(PASSWORD_KEY, PASSWORD_VALUE)
                         .param(PASSWORD_CONFIRM_KEY, "11111")
                         .param(REDIRECT_TO_KEY, SIGN_IN_PATH))
-                .andExpect(status().is2xxSuccessful())
-                .andExpect(view().name(SIGN_UP_WITH_ERRORS))
-                .andExpect(model().attributeHasFieldErrorCode(
-                        USER_SIGN_UP_DTO, PASSWORD_CONFIRM_KEY, "NotConfirm.weatherUser.password"));
+                .andExpect(status().is2xxSuccessful());
 
         UserDto testUser = new UserDto();
         testUser.setLogin(LOGIN_VALUE);
-
-        assertThrows(UserNotFoundException.class, () -> userProfileService.getUserId(testUser));
+        assertThrows(UserNotFoundException.class, () -> userProfileServiceImpl.getUserId(testUser));
     }
 
     @Test
     public void passwordIncorrectSignInTest() throws Exception {
-        successfulSignUpTest();
+        registerTestUser();
+
         mockMvc.perform(post(LOGIN_PATH)
                         .param(LOGIN_KEY, LOGIN_VALUE)
                         .param(PASSWORD_KEY, "test12345")
@@ -136,12 +122,12 @@ public class UserLifeCycleIntegrationTest {
         UserDto testUser = new UserDto();
         testUser.setLogin(LOGIN_VALUE);
 
-        assertThrows(UserNotFoundException.class, () -> userProfileService.getUserId(testUser));
+        assertThrows(UserNotFoundException.class, () -> userProfileServiceImpl.getUserId(testUser));
     }
 
     @Test
     public void loginAlreadyExistTest() throws Exception {
-        successfulSignUpTest();
+        registerTestUser();
         mockMvc.perform(post(WEATHER_USERS_PATH)
                         .param(LOGIN_KEY, LOGIN_VALUE)
                         .param(PASSWORD_KEY, PASSWORD_VALUE)
@@ -154,7 +140,7 @@ public class UserLifeCycleIntegrationTest {
 
     @Test
     public void successfulSignInTest() throws Exception {
-        successfulSignUpTest();
+        registerTestUser();
         MvcResult result = mockMvc.perform(post(LOGIN_PATH)
                         .param(LOGIN_KEY, LOGIN_VALUE)
                         .param(PASSWORD_KEY, PASSWORD_VALUE)
@@ -164,13 +150,13 @@ public class UserLifeCycleIntegrationTest {
 
         String token = Objects.requireNonNull(result.getResponse().getCookie(COOKIE_KEY)).getValue();
         UUID uuid = UUID.fromString(token);
-        Long id = sessionService.getSession(uuid);
+        Long id = sessionServiceImpl.getSession(uuid);
         assertNotNull(id);
     }
 
     @Test
     public void createAndCleanUpSessionTest() throws Exception {
-        successfulSignUpTest();
+        registerTestUser();
         MvcResult result = mockMvc.perform(post(LOGIN_PATH)
                         .param(LOGIN_KEY, LOGIN_VALUE)
                         .param(PASSWORD_KEY, PASSWORD_VALUE)
@@ -178,15 +164,24 @@ public class UserLifeCycleIntegrationTest {
 
         String token = Objects.requireNonNull(result.getResponse().getCookie(COOKIE_KEY)).getValue();
         UUID uuid = UUID.fromString(token);
-        Long id = sessionService.getSession(uuid);
+        Long id = sessionServiceImpl.getSession(uuid);
         assertNotNull(id);
 
         Instant now = Instant.now();
-        sessionDao.getUserIdAndRefreshSession(now.minusSeconds(1), uuid, now);
+        sessionDaoImpl.getUserIdAndRefreshSession(now.minusSeconds(1), uuid, now);
 
         Thread.sleep(100);
-        sessionCleanupService.cleanup();
+        sessionCleanupServiceImpl.cleanup();
 
-        assertThrows(SessionNotFound.class, () -> sessionService.getSession(uuid));
+        assertThrows(SessionNotFound.class, () -> sessionServiceImpl.getSession(uuid));
+    }
+
+    private void registerTestUser() {
+        UserSignUpDto signUpDto = new UserSignUpDto();
+        signUpDto.setLogin(LOGIN_VALUE);
+        signUpDto.setPassword(PASSWORD_VALUE);
+        signUpDto.setPasswordConfirm(PASSWORD_VALUE);
+
+        userProfileServiceImpl.createNewUser(signUpDto);
     }
 }

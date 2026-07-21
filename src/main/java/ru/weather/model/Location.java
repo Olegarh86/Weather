@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class WeatherLocation {
+public class Location {
     private String name;
     @JsonProperty("user_id")
     private Long userId;

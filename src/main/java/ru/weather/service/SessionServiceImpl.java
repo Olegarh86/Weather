@@ -16,22 +16,17 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class SessionService {
+public class SessionServiceImpl implements SessionService {
     private final SessionDao sessionDaoImpl;
     @Value("${cookies.maxAge}")
     private int maxAge;
 
     @Autowired
-    public SessionService(SessionDao sessionDaoImpl) {
+    public SessionServiceImpl(SessionDao sessionDaoImpl) {
         this.sessionDaoImpl = sessionDaoImpl;
     }
 
-    public void createNewSession(UUID uuid, Long id) {
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(maxAge);
-        sessionDaoImpl.addSession(new WeatherSession(uuid, id), expiresAt);
-    }
-
+    @Override
     @Transactional
     public Long getUserIdAndRefreshSession(String token) {
         Instant now = Instant.now();
@@ -44,6 +39,7 @@ public class SessionService {
         return userIdOptional.get();
     }
 
+    @Override
     @Transactional
     public void deleteSession(String token) {
         UUID uuid = parseUuid(token);
@@ -54,6 +50,22 @@ public class SessionService {
         }
     }
 
+    @Override
+    public Long getSession(UUID uuid) {
+        Long id = sessionDaoImpl.getSession(uuid);
+        if (id == null) {
+            throw new SessionNotFound();
+        }
+        return id;
+    }
+
+    @Override
+    public void createNewSession(UUID uuid, Long id) {
+        Instant now = Instant.now();
+        Instant expiresAt = now.plusSeconds(maxAge);
+        sessionDaoImpl.addSession(new WeatherSession(uuid, id), expiresAt);
+    }
+
     private static UUID parseUuid(String token) {
         UUID uuid;
         try {
@@ -62,13 +74,5 @@ public class SessionService {
             throw new ParseUuidException(e);
         }
         return uuid;
-    }
-
-    public Long getSession(UUID uuid) {
-        Long id = sessionDaoImpl.getSession(uuid);
-        if (id == null) {
-            throw new SessionNotFound();
-        }
-        return id;
     }
 }

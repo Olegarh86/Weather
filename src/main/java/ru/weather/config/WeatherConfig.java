@@ -1,18 +1,29 @@
 package ru.weather.config;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.caffeine.CaffeineCache;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
@@ -25,18 +36,22 @@ import ru.weather.service.SessionService;
 import ru.weather.service.UserProfileService;
 
 import javax.sql.DataSource;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @EnableWebMvc
 @EnableScheduling
+@EnableCaching
+@EnableAsync
 @EnableTransactionManagement
 @ComponentScan("ru.weather")
 @PropertySource("classpath:application-${spring.profiles.active:prod}.properties")
 public class WeatherConfig implements WebMvcConfigurer {
     private final ApplicationContext applicationContext;
-    private SessionService sessionService;
-    private UserProfileService userProfileService;
+    private SessionService sessionServiceImpl;
+    private UserProfileService userProfileServiceImpl;
     @Value("${db.driver}")
     private String dbDriver;
     @Value("${db.url}")
@@ -49,11 +64,11 @@ public class WeatherConfig implements WebMvcConfigurer {
     private int timeout;
 
     @Autowired
-    public WeatherConfig(ApplicationContext applicationContext, SessionService sessionService,
-                         UserProfileService userProfileService) {
+    public WeatherConfig(ApplicationContext applicationContext, SessionService sessionServiceImpl,
+                         UserProfileService userProfileServiceImpl) {
         this.applicationContext = applicationContext;
-        this.sessionService = sessionService;
-        this.userProfileService = userProfileService;
+        this.sessionServiceImpl = sessionServiceImpl;
+        this.userProfileServiceImpl = userProfileServiceImpl;
     }
 
     protected WeatherConfig() {
@@ -137,7 +152,7 @@ public class WeatherConfig implements WebMvcConfigurer {
 
     @Bean
     public AuthInterceptor authInterceptor() {
-        return new AuthInterceptor(sessionService, userProfileService);
+        return new AuthInterceptor(sessionServiceImpl, userProfileServiceImpl);
     }
 
     @Override
@@ -151,6 +166,43 @@ public class WeatherConfig implements WebMvcConfigurer {
     @Bean
     public PlatformTransactionManager transactionManager(DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
+    }
+
+    @Bean
+    public CacheManager cacheManager() {
+        SimpleCacheManager cacheManager = new SimpleCacheManager();
+
+        CaffeineCache locationsCache = new CaffeineCache("locations",
+                Caffeine.newBuilder()
+                        .maximumSize(1000)
+                        .expireAfterAccess(20, TimeUnit.MINUTES)
+                        .build());
+
+        CaffeineCache weatherCache = new CaffeineCache("weather",
+                Caffeine.newBuilder()
+                        .maximumSize(1000)
+                        .expireAfterAccess(5, TimeUnit.MINUTES)
+                        .buildAsync(), true);
+
+        cacheManager.setCaches(Arrays.asList(locationsCache, weatherCache));
+        return cacheManager;
+    }
+
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+        configurer.setDefaultTimeout(timeout);
+        configurer.setTaskExecutor(taskExecutor());
+    }
+
+    @Bean
+    public AsyncTaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("caffeine-async-");
+        executor.initialize();
+        return executor;
     }
 }
 

@@ -11,20 +11,20 @@ import ru.weather.service.SessionService;
 import ru.weather.service.UserProfileService;
 
 public class AuthInterceptor implements HandlerInterceptor {
-    private final SessionService sessionService;
-    private final UserProfileService userProfileService;
+    private final SessionService sessionServiceImpl;
+    private final UserProfileService userProfileServiceImpl;
 
     @Autowired
-    public AuthInterceptor(SessionService sessionService, UserProfileService userProfileService) {
-        this.sessionService = sessionService;
-        this.userProfileService = userProfileService;
+    public AuthInterceptor(SessionService sessionServiceImpl, UserProfileService userProfileServiceImpl) {
+        this.sessionServiceImpl = sessionServiceImpl;
+        this.userProfileServiceImpl = userProfileServiceImpl;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String uri = request.getRequestURI();
-        if ("/weather/users/sign-up".equals(uri) || "/weather/users/sign-in".equals(uri) || "/weather/users".equals(uri) ||
-            "/weather/users/login".equals(uri) || "/weather/users/error".equals(uri) || uri.startsWith("/resources")) {
+        if (uri.endsWith("/users/sign-up") || uri.endsWith("/users/sign-in") || uri.endsWith("/users") ||
+            uri.endsWith("/users/login") || uri.endsWith("/users/error") || uri.contains("/resources/")) {
             return true;
         }
         String token = null;
@@ -39,22 +39,22 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
         if (token != null) {
             try {
-                Long userId = sessionService.getUserIdAndRefreshSession(token);
-                String login = userProfileService.getLogin(userId);
+                Long userId = sessionServiceImpl.getUserIdAndRefreshSession(token);
+                String login = userProfileServiceImpl.getLogin(userId);
                 request.setAttribute("userId", userId);
                 request.setAttribute("login", login);
                 return true;
             } catch (SessionNotFound e) {
-                response.sendRedirect(request.getContextPath() + "/weather/users/sign-in");
+                response.sendRedirect(request.getContextPath() + "/users/sign-in");
                 return false;
             }
         }
-        response.sendRedirect(request.getContextPath() + "/weather/users/sign-in");
+        response.sendRedirect(request.getContextPath() + "/users/sign-in");
         return false;
     }
 
     @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
         if (modelAndView != null && request.getAttribute("login") != null) {
             modelAndView.addObject("login", request.getAttribute("login"));
         }

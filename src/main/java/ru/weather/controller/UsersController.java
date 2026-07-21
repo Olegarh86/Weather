@@ -11,36 +11,38 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.weather.dto.*;
+import ru.weather.exception.LocationAlreadyExist;
 import ru.weather.exception.LoginAlreadyExist;
 import ru.weather.exception.PasswordIncorrectException;
 import ru.weather.exception.UserNotFoundException;
+import ru.weather.model.Location;
 import ru.weather.service.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 
 @Slf4j
 @Controller
-@RequestMapping("/weather/users")
+@RequestMapping("/users")
 public class UsersController {
-    private final AuthService authService;
-    private final PasswordEncoderService passwordEncoderService;
-    private final UserProfileService userProfileService;
-    private final SessionService sessionService;
-    private final LocationService locationService;
+    private final AuthService authServiceImpl;
+    private final UserProfileService userProfileServiceImpl;
+    private final SessionService sessionServiceImpl;
+    private final LocationService locationServiceImpl;
 
     @Autowired
-    public UsersController(AuthService authService, PasswordEncoderService passwordEncoderService, UserProfileService userProfileService, SessionService sessionService, LocationService locationService) {
-        this.authService = authService;
-        this.passwordEncoderService = passwordEncoderService;
-        this.userProfileService = userProfileService;
-        this.sessionService = sessionService;
-        this.locationService = locationService;
+    public UsersController(AuthService authServiceImpl, UserProfileService userProfileServiceImpl,
+                           SessionService sessionServiceImpl, LocationService locationServiceImpl) {
+        this.authServiceImpl = authServiceImpl;
+        this.userProfileServiceImpl = userProfileServiceImpl;
+        this.sessionServiceImpl = sessionServiceImpl;
+        this.locationServiceImpl = locationServiceImpl;
     }
 
     @GetMapping
     public String users() {
-        return "redirect:/weather/users/index";
+        return "redirect:/users/index";
     }
 
     @PostMapping
@@ -58,10 +60,8 @@ public class UsersController {
             bindingResult.rejectValue("password", "Size.weatherUser.password");
             return "sign-up-with-errors";
         }
-        String password = passwordEncoderService.encodePassword(userSignUpDto);
-        userSignUpDto.setPassword(password);
         try {
-            userProfileService.createNewUser(userSignUpDto);
+            userProfileServiceImpl.createNewUser(userSignUpDto);
         } catch (LoginAlreadyExist e) {
             log.warn(e.getMessage(), e);
             bindingResult.rejectValue("login", "AlreadyExist.weatherUser.login");
@@ -82,21 +82,22 @@ public class UsersController {
 
     @PostMapping("/sign-out")
     public String signOut(@CookieValue(value = "uuid", required = false) String token, HttpServletResponse response) {
-        sessionService.deleteSession(token);
-        Cookie cookie = authService.cleanUpCookie();
+        sessionServiceImpl.deleteSession(token);
+        Cookie cookie = authServiceImpl.cleanUpCookie();
         response.addCookie(cookie);
-        return "redirect:/weather/users/index";
+        return "redirect:/users/index";
     }
 
     @PostMapping("/login")
-    public String getUser(@RequestParam("redirect_to") String redirectTo, @ModelAttribute("userSignInDto") @Valid UserDto userDto,
+    public String getUser(@RequestParam("redirect_to") String redirectTo,
+                          @ModelAttribute("userSignInDto") @Valid UserDto userDto,
                           BindingResult bindingResult, HttpServletResponse response) {
         if (bindingResult.hasErrors()) {
             return "sign-in-with-errors";
         }
         Cookie cookie;
         try {
-            cookie = authService.authenticate(userDto);
+            cookie = authServiceImpl.authenticate(userDto);
         } catch (UserNotFoundException e) {
             log.warn(e.getMessage(), e);
             bindingResult.rejectValue("login", "NotFound.weatherUser");
@@ -111,17 +112,21 @@ public class UsersController {
     }
 
     @GetMapping("/index")
-    public String index(HttpServletRequest request, Model model) {
+    public CompletableFuture<String> index(HttpServletRequest request, Model model) {
         Long userId = (Long) request.getAttribute("userId");
-        List<CardLocationDto> cardLocations = locationService.getAllWeathers(userId);
+        List<Location> locations = locationServiceImpl.getLocations(userId);
+        CompletableFuture<List<CardLocationDto>> cardLocations = locationServiceImpl.getAllWeathers(userId, locations);
         model.addAttribute("allLocations", cardLocations);
-        return "index";
+        return cardLocations.thenApply(allLocations -> {
+            model.addAttribute("allLocations", allLocations);
+            return "index";
+        });
     }
 
     @GetMapping("/search-results")
     public String searchResults(@RequestParam("location") String locationName, Model model, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
-        ResponseWithCoordinates[] allLocations = locationService.findAllLocationsByName(locationName);
+        ResponseWithCoordinates[] allLocations = locationServiceImpl.findAllLocationsByName(locationName);
         model.addAttribute("id", userId);
         model.addAttribute("locationName", locationName);
         model.addAttribute("allLocations", allLocations);
@@ -130,16 +135,20 @@ public class UsersController {
 
     @PostMapping("/locations/add")
     public String addLocation(UserLocationsDto location) {
-        locationService.saveNewLocation(location);
-        return "redirect:/weather/users/index";
+        try {
+            locationServiceImpl.saveNewLocation(location);
+        } catch (LocationAlreadyExist e) {
+            return "redirect:/users/index";
+        }
+        return "redirect:/users/index";
     }
 
     @PostMapping("/locations/delete")
     public String deleteLocation(@RequestParam("latitude") String latitude,
                                  @RequestParam("longitude") String longitude, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
-        locationService.deleteLocation(userId, latitude, longitude);
-        return "redirect:/weather/users/index";
+        locationServiceImpl.deleteLocation(userId, latitude, longitude);
+        return "redirect:/users/index";
     }
 
     @GetMapping("/error")

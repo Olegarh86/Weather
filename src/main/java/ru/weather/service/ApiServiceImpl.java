@@ -2,7 +2,6 @@ package ru.weather.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import ru.weather.dto.ResponseWithCoordinates;
@@ -12,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class ApiService {
+public class ApiServiceImpl implements ApiService {
     private final RestTemplate restTemplate;
     @Value("${weather.findLocationsUrl}")
     private String urlFindCoordinates;
@@ -26,10 +25,11 @@ public class ApiService {
     private String limit;
 
     @Autowired
-    public ApiService(RestTemplate restTemplate) {
+    public ApiServiceImpl(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
+    @Override
     public ResponseWithWeatherDto getWeather(String latitude, String longitude) {
         String path = urlGetWeather + "?lat={latitude}&lon={longitude}&units={units}&appid={appid}";
         Map<String, String> params = new HashMap<>();
@@ -40,6 +40,7 @@ public class ApiService {
         return restTemplate.getForObject(path, ResponseWithWeatherDto.class, params);
     }
 
+    @Override
     public ResponseWithCoordinates[] findAllLocations(String name) {
         String path = urlFindCoordinates + "?q={name}&limit={limit}&appid={appid}";
         Map<String, String> params = new HashMap<>();
