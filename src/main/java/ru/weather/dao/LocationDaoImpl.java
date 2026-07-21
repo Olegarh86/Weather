@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.weather.model.WeatherLocation;
+import ru.weather.model.Location;
 
 import java.util.List;
 
@@ -17,12 +17,12 @@ public class LocationDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<WeatherLocation> getLocationsByUserId(long userId) {
+    public List<Location> getLocationsByUserId(long userId) {
         return jdbcTemplate.query("SELECT * FROM locations WHERE user_id = ? ORDER BY id DESC", new Object[]{userId},
-                new BeanPropertyRowMapper<>(WeatherLocation.class));
+                new BeanPropertyRowMapper<>(Location.class));
     }
 
-    public void saveLocation(WeatherLocation location) {
+    public void saveLocation(Location location) {
         jdbcTemplate.update("INSERT INTO locations (name, user_id, latitude, longitude) VALUES (?,?,?,?)",
                 location.getName(), location.getUserId(), location.getLatitude(), location.getLongitude());
     }

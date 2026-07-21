@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.weather.dao.UserDao;
+import ru.weather.dao.UserDaoImpl;
 import ru.weather.dto.UserDto;
 import ru.weather.dto.UserSignUpDto;
 import ru.weather.exception.LoginAlreadyExist;
@@ -15,24 +17,25 @@ import java.util.Optional;
 
 @Service
 public class UserProfileService {
-    private final UserDao userDao;
+    private final UserDao userDaoImpl;
 
     @Autowired
-    public UserProfileService(UserDao userDao) {
-        this.userDao = userDao;
+    public UserProfileService(UserDao userDaoImpl) {
+        this.userDaoImpl = userDaoImpl;
     }
 
+    @Transactional
     public void createNewUser(@Valid UserSignUpDto userSignUpDto) {
         WeatherUser weatherUser = new WeatherUser(userSignUpDto.getLogin(), userSignUpDto.getPassword());
         try {
-            userDao.saveUser(weatherUser);
+            userDaoImpl.saveUser(weatherUser);
         } catch (DataAccessException e) {
             throw new LoginAlreadyExist(e);
         }
     }
 
     public String getPassword(UserDto userDto) {
-        Optional<WeatherUser> optionalWeatherUser = userDao.findByLogin(userDto.getLogin());
+        Optional<WeatherUser> optionalWeatherUser = userDaoImpl.findByLogin(userDto.getLogin());
         if (optionalWeatherUser.isPresent()) {
             return optionalWeatherUser.get().getPassword();
         }
@@ -40,7 +43,7 @@ public class UserProfileService {
     }
 
     public Long getUserId(UserDto userDto) {
-        Optional<WeatherUser> optionalWeatherUser = userDao.findByLogin(userDto.getLogin());
+        Optional<WeatherUser> optionalWeatherUser = userDaoImpl.findByLogin(userDto.getLogin());
         if (optionalWeatherUser.isPresent()) {
             return optionalWeatherUser.get().getId();
         }
@@ -48,7 +51,7 @@ public class UserProfileService {
     }
 
     public String getLogin(Long userId) {
-        Optional<WeatherUser> userOptional = userDao.findById(userId);
+        Optional<WeatherUser> userOptional = userDaoImpl.findById(userId);
         if (userOptional.isEmpty()) {
             throw new UserNotFoundException();
         }

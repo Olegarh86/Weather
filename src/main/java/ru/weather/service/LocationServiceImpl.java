@@ -1,44 +1,63 @@
 package ru.weather.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import ru.weather.dao.LocationDao;
+import ru.weather.dao.LocationDaoImpl;
 import ru.weather.dto.CardLocationDto;
 import ru.weather.dto.ResponseWithCoordinates;
 import ru.weather.dto.ResponseWithWeatherDto;
 import ru.weather.dto.UserLocationsDto;
 import ru.weather.exception.*;
-import ru.weather.model.WeatherLocation;
+import ru.weather.model.Location;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class LocationService {
-    private final LocationDao locationDao;
+    private final LocationDao locationDaoImpl;
     private final ApiService apiService;
+    private final AsyncTaskExecutor taskExecutor;
 
     @Autowired
-    public LocationService(LocationDao locationDao, ApiService apiService) {
-        this.locationDao = locationDao;
+    public LocationService(LocationDao locationDaoImpl, ApiService apiService, AsyncTaskExecutor taskExecutor) {
+        this.locationDaoImpl = locationDaoImpl;
         this.apiService = apiService;
+        this.taskExecutor = taskExecutor;
     }
 
-    public List<CardLocationDto> getAllWeathers(Long userId) {
-        List<WeatherLocation> locations;
+    @Cacheable(value = "weather", key = "#userId")
+    public CompletableFuture<List<CardLocationDto>> getAllWeathers(Long userId, List<Location> locations) {
+        return CompletableFuture.supplyAsync(() -> getCardLocationDto(locations), taskExecutor);
+    }
+
+    @Cacheable(value = "locations", key = "#userId")
+    public List<Location> getLocations(Long userId) {
         try {
-            locations = locationDao.getLocationsByUserId(userId);
+            return locationDaoImpl.getLocationsByUserId(userId);
         } catch (DataAccessException e) {
             throw new GetLocationsByUserIdException(e);
         }
+    }
+
+    public List<CardLocationDto> getCardLocationDto(List<Location> locations) {
         List<CardLocationDto> cardLocations = new ArrayList<>();
 
-        for (WeatherLocation location : locations) {
+        for (Location location : locations) {
             ResponseWithWeatherDto weather;
             try {
-                weather = apiService.getWeather(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()));
+                String latitude = String.valueOf(location.getLatitude());
+                String longitude = String.valueOf(location.getLongitude());
+                weather = apiService.getWeather(latitude, longitude);
             } catch (RestClientException e) {
                 throw new ConnectToWeatherServiceException(e);
             }
@@ -64,20 +83,29 @@ public class LocationService {
         }
     }
 
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "locations", key = "T(Long).valueOf(#location.userId)"),
+            @CacheEvict(value = "weather", key = "T(Long).valueOf(#location.userId)")})
     public void saveNewLocation(UserLocationsDto location) {
         try {
-            WeatherLocation weatherLocation = new WeatherLocation(
+            Location newLocation = new Location(
                     location.getName(),
                     Long.valueOf(location.getUserId()),
                     Double.valueOf(location.getLatitude()),
                     Double.valueOf(location.getLongitude()));
-            locationDao.saveLocation(weatherLocation);
+            locationDaoImpl.saveLocation(newLocation);
         } catch (NumberFormatException e) {
             throw new SaveLocationException(e);
-        } catch (DataAccessException ignore) {
+        } catch (DataAccessException ex) {
+            throw new LocationAlreadyExist(ex);
         }
     }
 
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "locations", key = "#userId"),
+            @CacheEvict(value = "weather", key = "#userId")})
     public void deleteLocation(Long userId, String latitude, String longitude) {
         double latitudeDouble;
         double longitudeDouble;
@@ -88,7 +116,7 @@ public class LocationService {
             throw new ParseCoordinatesException(e);
         }
         try {
-            locationDao.deleteLocation(userId, latitudeDouble, longitudeDouble);
+            locationDaoImpl.deleteLocation(userId, latitudeDouble, longitudeDouble);
         } catch (DataAccessException e) {
             throw new DeleteLocationException(e);
         }
