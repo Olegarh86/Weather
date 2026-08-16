@@ -20,24 +20,25 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public Optional<WeatherUser> getUser(String login, String password) {
-        return jdbcTemplate.query("SELECT * FROM WeatherUsers WHERE login=? AND password=?",
+        return jdbcTemplate.query("SELECT * FROM weatherusers WHERE login=? AND password=?",
                 new Object[]{login, password}, new BeanPropertyRowMapper<>(WeatherUser.class)).stream().findFirst();
     }
 
     @Override
     public void saveUser(WeatherUser user) {
-        jdbcTemplate.update("INSERT INTO WeatherUsers (login,password) VALUES (?,?)", user.getLogin(), user.getPassword());
+        jdbcTemplate.update("INSERT INTO weatherusers (login,password) VALUES (?,?)", user.getLogin(),
+                user.getPassword());
     }
 
     @Override
     public Optional<WeatherUser> findByLogin(String login) {
-        return jdbcTemplate.query("SELECT * FROM WeatherUsers WHERE login=?", new Object[]{login},
+        return jdbcTemplate.query("SELECT * FROM weatherusers WHERE login=?", new Object[]{login},
                 new BeanPropertyRowMapper<>(WeatherUser.class)).stream().findFirst();
     }
 
     @Override
     public Optional<WeatherUser> findById(long id) {
-        return jdbcTemplate.query("SELECT * FROM WeatherUsers WHERE id=?", new Object[]{id},
+        return jdbcTemplate.query("SELECT * FROM weatherusers WHERE id=?", new Object[]{id},
                 new BeanPropertyRowMapper<>(WeatherUser.class)).stream().findFirst();
     }
 }

@@ -35,10 +35,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Transactional
 public class UserLifeCycleIntegrationTest {
-    private static final String WEATHER_USERS_PATH = "/users";
-    private static final String SIGN_IN_PATH = "/users/sign-in";
-    private static final String INDEX_PATH = "/users/index";
-    private static final String LOGIN_PATH = "/users/login";
+    private static final String SIGN_UP_PATH = "/sign-up";
+    private static final String SIGN_IN_PATH = "/sign-in";
+    private static final String INDEX_PATH = "/index";
     private static final String SIGN_UP_WITH_ERRORS = "sign-up-with-errors";
     private static final String SIGN_IN_WITH_ERRORS = "sign-in-with-errors";
     private static final String LOGIN_KEY = "login";
@@ -70,7 +69,7 @@ public class UserLifeCycleIntegrationTest {
 
     @Test
     public void successfulSignUpTest() throws Exception {
-        mockMvc.perform(post(WEATHER_USERS_PATH)
+        mockMvc.perform(post(SIGN_UP_PATH)
                         .param(LOGIN_KEY, LOGIN_VALUE)
                         .param(PASSWORD_KEY, PASSWORD_VALUE)
                         .param(PASSWORD_CONFIRM_KEY, PASSWORD_VALUE)
@@ -80,7 +79,7 @@ public class UserLifeCycleIntegrationTest {
 
     @Test
     public void passwordNotConfirmCreateUserTest() throws Exception {
-        mockMvc.perform(post(WEATHER_USERS_PATH)
+        mockMvc.perform(post(SIGN_UP_PATH)
                         .param(LOGIN_KEY, LOGIN_VALUE)
                         .param(PASSWORD_KEY, PASSWORD_VALUE)
                         .param(PASSWORD_CONFIRM_KEY, "11111")
@@ -96,7 +95,7 @@ public class UserLifeCycleIntegrationTest {
     public void passwordIncorrectSignInTest() throws Exception {
         registerTestUser();
 
-        mockMvc.perform(post(LOGIN_PATH)
+        mockMvc.perform(post(SIGN_IN_PATH)
                         .param(LOGIN_KEY, LOGIN_VALUE)
                         .param(PASSWORD_KEY, "test12345")
                         .param(REDIRECT_TO_KEY, INDEX_PATH))
@@ -108,7 +107,7 @@ public class UserLifeCycleIntegrationTest {
 
     @Test
     public void passwordTooShortSignUpTest() throws Exception {
-        mockMvc.perform(post(WEATHER_USERS_PATH)
+        mockMvc.perform(post(SIGN_UP_PATH)
                         .param(LOGIN_KEY, LOGIN_VALUE)
                         .param(PASSWORD_KEY, SHORT_PASSWORD_VALUE)
                         .param(PASSWORD_CONFIRM_KEY, SHORT_PASSWORD_VALUE)
@@ -128,7 +127,7 @@ public class UserLifeCycleIntegrationTest {
     @Test
     public void loginAlreadyExistTest() throws Exception {
         registerTestUser();
-        mockMvc.perform(post(WEATHER_USERS_PATH)
+        mockMvc.perform(post(SIGN_UP_PATH)
                         .param(LOGIN_KEY, LOGIN_VALUE)
                         .param(PASSWORD_KEY, PASSWORD_VALUE)
                         .param(PASSWORD_CONFIRM_KEY, PASSWORD_VALUE)
@@ -141,7 +140,7 @@ public class UserLifeCycleIntegrationTest {
     @Test
     public void successfulSignInTest() throws Exception {
         registerTestUser();
-        MvcResult result = mockMvc.perform(post(LOGIN_PATH)
+        MvcResult result = mockMvc.perform(post(SIGN_IN_PATH)
                         .param(LOGIN_KEY, LOGIN_VALUE)
                         .param(PASSWORD_KEY, PASSWORD_VALUE)
                         .param(REDIRECT_TO_KEY, INDEX_PATH))
@@ -157,7 +156,7 @@ public class UserLifeCycleIntegrationTest {
     @Test
     public void createAndCleanUpSessionTest() throws Exception {
         registerTestUser();
-        MvcResult result = mockMvc.perform(post(LOGIN_PATH)
+        MvcResult result = mockMvc.perform(post(SIGN_IN_PATH)
                         .param(LOGIN_KEY, LOGIN_VALUE)
                         .param(PASSWORD_KEY, PASSWORD_VALUE)
                         .param(REDIRECT_TO_KEY, INDEX_PATH)).andReturn();

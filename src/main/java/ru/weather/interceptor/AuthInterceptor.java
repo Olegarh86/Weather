@@ -23,8 +23,11 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String uri = request.getRequestURI();
-        if (uri.endsWith("/users/sign-up") || uri.endsWith("/users/sign-in") || uri.endsWith("/users") ||
-            uri.endsWith("/users/login") || uri.endsWith("/users/error") || uri.contains("/resources/")) {
+        if (uri.endsWith("/sign-up") ||
+            uri.endsWith("/sign-in") ||
+            uri.endsWith("/") ||
+            uri.endsWith("/error") ||
+            uri.contains("/resources/")) {
             return true;
         }
         String token = null;
@@ -45,11 +48,11 @@ public class AuthInterceptor implements HandlerInterceptor {
                 request.setAttribute("login", login);
                 return true;
             } catch (SessionNotFound e) {
-                response.sendRedirect(request.getContextPath() + "/users/sign-in");
+                response.sendRedirect(request.getContextPath() + "/sign-in");
                 return false;
             }
         }
-        response.sendRedirect(request.getContextPath() + "/users/sign-in");
+        response.sendRedirect(request.getContextPath() + "/sign-in");
         return false;
     }
 

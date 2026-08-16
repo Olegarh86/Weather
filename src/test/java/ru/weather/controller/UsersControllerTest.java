@@ -41,7 +41,7 @@ class UsersControllerTest {
     private LocationService locationServiceImpl;
 
     @InjectMocks
-    private UsersController usersController;
+    private WeatherController weatherController;
 
     @BeforeEach
     void setUp() {
@@ -58,7 +58,7 @@ class UsersControllerTest {
         when(locationServiceImpl.getAllWeathers(USER_ID_VALUE, locations))
                 .thenReturn(CompletableFuture.completedFuture(cardLocationsExpected));
 
-        assertEquals("index", usersController.index(req, model).join());
+        assertEquals("index", weatherController.index(req, model).join());
         Object cardLocationDtoResponse = model.getAttribute(ALL_LOCATIONS);
         List<CardLocationDto> cardLocationDtoResult = null;
         if (cardLocationDtoResponse instanceof List<?>) {
@@ -92,7 +92,7 @@ class UsersControllerTest {
     void indexFailedTest() {
         List<Location> locations = new ArrayList<>();
         when(locationServiceImpl.getAllWeathers(USER_ID_VALUE, locations)).thenThrow(new ConnectToWeatherServiceException(new Exception()));
-        assertThrows(ConnectToWeatherServiceException.class, () -> usersController.index(req, model));
+        assertThrows(ConnectToWeatherServiceException.class, () -> weatherController.index(req, model));
     }
 
     @Test
@@ -105,7 +105,7 @@ class UsersControllerTest {
 
         when(locationServiceImpl.findAllLocationsByName(LONDON)).thenReturn(response);
 
-        assertEquals("search-results", usersController.searchResults(LONDON, model, req));
+        assertEquals("search-results", weatherController.searchResults(LONDON, model, req));
         ResponseWithCoordinates[] allLocations = (ResponseWithCoordinates[]) model.getAttribute(ALL_LOCATIONS);
 
         assertEquals(USER_ID_VALUE, model.getAttribute("id"));

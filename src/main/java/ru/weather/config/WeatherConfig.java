@@ -10,10 +10,7 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.task.AsyncTaskExecutor;
@@ -125,6 +122,7 @@ public class WeatherConfig implements WebMvcConfigurer {
     }
 
     @Bean
+    @DependsOn("flyway")
     public JdbcTemplate jdbcTemplate(DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
@@ -159,8 +157,10 @@ public class WeatherConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor())
                 .addPathPatterns("/**")
-                .excludePathPatterns("/weather/users/sign-up", "/weather/users/sign-in", "/weather/users/error",
-                        "/weather/users/login", "/resources/**");
+                .excludePathPatterns("/weather/sign-up",
+                        "/weather/sign-in",
+                        "/weather/error",
+                        "/resources/**");
     }
 
     @Bean

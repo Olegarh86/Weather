@@ -20,6 +20,7 @@ launch-local-nginx.sh
 *.iws
 *.iml
 *.ipr
+*.env
 
 ### Eclipse ###
 .apt_generated

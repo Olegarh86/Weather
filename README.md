@@ -2,7 +2,7 @@
 
 A web application for tracking weather conditions in user-selected locations. This is a personal pet project designed to gain hands-on experience with core Java Backend development, relational databases, third-party API integration, and manual authentication mechanics.
 
-🔗 **Live Demo:** [http://exchanger-app.ru/weather/users/sign-in](http://exchanger-app.ru/weather/users/sign-in)
+🔗 **Live Demo:** [http://exchanger-app.ru/weather/sign-in](http://exchanger-app.ru/weather/sign-in)
 
 ---
 
@@ -75,4 +75,4 @@ mvn clean package
 ### 4. Deploy to Tomcat
 1. Copy the generated `weather.war` file from the `target/` directory.
 2. Paste it into the `webapps/` folder of your local Apache Tomcat server.
-3. Start Tomcat. The application will be available at: `http://localhost:8080/weather/users/sign-in`
+3. Start Tomcat. The application will be available at: `http://localhost:8080/weather/sign-in`
