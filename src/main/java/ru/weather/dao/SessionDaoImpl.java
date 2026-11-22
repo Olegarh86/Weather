@@ -18,7 +18,7 @@ public class SessionDaoImpl implements SessionDao {
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public SessionDaoImpl(@Lazy JdbcTemplate jdbcTemplate) {
+    public SessionDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

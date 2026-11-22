@@ -19,7 +19,6 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -49,8 +48,6 @@ import java.util.concurrent.TimeUnit;
 @PropertySource("classpath:application-${spring.profiles.active:prod}.properties")
 public class WeatherConfig implements WebMvcConfigurer {
     private final ApplicationContext applicationContext;
-    private SessionService sessionServiceImpl;
-    private UserProfileService userProfileServiceImpl;
     @Value("${db.driver}")
     private String dbDriver;
     @Value("${db.url}")
@@ -63,15 +60,8 @@ public class WeatherConfig implements WebMvcConfigurer {
     private int timeout;
 
     @Autowired
-    public WeatherConfig(ApplicationContext applicationContext, SessionService sessionServiceImpl,
-                         UserProfileService userProfileServiceImpl) {
+    public WeatherConfig(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
-        this.sessionServiceImpl = sessionServiceImpl;
-        this.userProfileServiceImpl = userProfileServiceImpl;
-    }
-
-    protected WeatherConfig() {
-        this.applicationContext = null;
     }
 
     @Bean
@@ -153,13 +143,14 @@ public class WeatherConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public AuthInterceptor authInterceptor() {
+    public AuthInterceptor authInterceptor(SessionService sessionServiceImpl,
+                                           UserProfileService userProfileServiceImpl) {
         return new AuthInterceptor(sessionServiceImpl, userProfileServiceImpl);
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(authInterceptor())
+        registry.addInterceptor(authInterceptor(null, null))
                 .addPathPatterns("/**")
                 .excludePathPatterns("/weather/sign-up",
                         "/weather/sign-in",
