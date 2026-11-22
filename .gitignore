@@ -5,7 +5,7 @@ mvnw
 mvnw.cmd
 !**/src/main/**/target/
 !**/src/test/**/target/
-*.properties
+application-prod.properties
 logs/
 *.log
 launch-local-nginx.sh

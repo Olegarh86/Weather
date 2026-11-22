@@ -1,6 +1,8 @@
 package ru.weather.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -104,12 +106,14 @@ public class WeatherConfig implements WebMvcConfigurer {
 
     @Bean
     public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(dbDriver);
-        dataSource.setUrl(dbUrl);
-        dataSource.setUsername(dbUsername);
-        dataSource.setPassword(dbPassword);
-        return dataSource;
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName(dbDriver);
+        config.setJdbcUrl(dbUrl);
+        config.setUsername(dbUsername);
+        config.setPassword(dbPassword);
+        int poolSize = 20;
+        config.setMaximumPoolSize(poolSize);
+        return new HikariDataSource(config);
     }
 
     @Bean(initMethod = "migrate")
