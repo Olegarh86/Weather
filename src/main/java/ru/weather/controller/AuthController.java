@@ -25,7 +25,9 @@ public class AuthController {
     private final SessionService sessionServiceImpl;
 
     @Autowired
-    public AuthController(AuthService authServiceImpl, UserProfileService userProfileServiceImpl, SessionService sessionServiceImpl) {
+    public AuthController(AuthService authServiceImpl,
+                          UserProfileService userProfileServiceImpl,
+                          SessionService sessionServiceImpl) {
         this.authServiceImpl = authServiceImpl;
         this.userProfileServiceImpl = userProfileServiceImpl;
         this.sessionServiceImpl = sessionServiceImpl;

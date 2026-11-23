@@ -7,9 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserLocationsDto {
-    private String name;
-    @JsonProperty("user_id")
-    private String userId;
     private String latitude;
     private String longitude;
 }

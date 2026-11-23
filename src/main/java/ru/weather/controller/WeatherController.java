@@ -1,12 +1,13 @@
 package ru.weather.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import ru.weather.annotation.CurrentUser;
 import ru.weather.dto.CardLocationDto;
+import ru.weather.dto.CurrentUserDto;
 import ru.weather.dto.ResponseWithCoordinates;
 import ru.weather.model.Location;
 import ru.weather.service.LocationService;
@@ -24,10 +25,10 @@ public class WeatherController {
     }
 
     @GetMapping("/index")
-    public CompletableFuture<String> index(HttpServletRequest request, Model model) {
-        Long userId = (Long) request.getAttribute("userId");
-        List<Location> locations = locationServiceImpl.getLocations(userId);
-        CompletableFuture<List<CardLocationDto>> cardLocations = locationServiceImpl.getAllWeathers(userId, locations);
+    public CompletableFuture<String> index(@CurrentUser CurrentUserDto user,
+                                           Model model) {
+        List<Location> locations = locationServiceImpl.getLocations(user);
+        CompletableFuture<List<CardLocationDto>> cardLocations = locationServiceImpl.getAllWeathers(user, locations);
         model.addAttribute("allLocations", cardLocations);
         return cardLocations.thenApply(allLocations -> {
             model.addAttribute("allLocations", allLocations);
@@ -36,10 +37,11 @@ public class WeatherController {
     }
 
     @GetMapping("/search-results")
-    public String searchResults(@RequestParam("location") String locationName, Model model, HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
+    public String searchResults(@RequestParam("location") String locationName,
+                                Model model,
+                                @CurrentUser CurrentUserDto user) {
         ResponseWithCoordinates[] allLocations = locationServiceImpl.findAllLocationsByName(locationName);
-        model.addAttribute("id", userId);
+        model.addAttribute("id", user.getUserId());
         model.addAttribute("locationName", locationName);
         model.addAttribute("allLocations", allLocations);
         return "search-results";

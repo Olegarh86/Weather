@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
+import ru.weather.dto.CurrentUserDto;
 import ru.weather.exception.SessionNotFound;
 import ru.weather.service.SessionService;
 import ru.weather.service.UserProfileService;
@@ -22,14 +23,6 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String uri = request.getRequestURI();
-        if (uri.endsWith("/sign-up") ||
-            uri.endsWith("/sign-in") ||
-            uri.endsWith("/") ||
-            uri.endsWith("/error") ||
-            uri.contains("/resources/")) {
-            return true;
-        }
         String token = null;
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
@@ -44,8 +37,9 @@ public class AuthInterceptor implements HandlerInterceptor {
             try {
                 Long userId = sessionServiceImpl.getUserIdAndRefreshSession(token);
                 String login = userProfileServiceImpl.getLogin(userId);
-                request.setAttribute("userId", userId);
+                request.setAttribute("userId", userId); // TODO refactor views and delete id and login
                 request.setAttribute("login", login);
+                request.setAttribute("currentUser", new CurrentUserDto(userId, login));
                 return true;
             } catch (SessionNotFound e) {
                 response.sendRedirect(request.getContextPath() + "/sign-in");

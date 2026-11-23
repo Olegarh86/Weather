@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import ru.weather.dao.LocationDao;
-import ru.weather.dto.CardLocationDto;
-import ru.weather.dto.ResponseWithCoordinates;
-import ru.weather.dto.ResponseWithWeatherDto;
-import ru.weather.dto.UserLocationsDto;
+import ru.weather.dto.*;
 import ru.weather.exception.*;
 import ru.weather.model.Location;
 
@@ -36,15 +33,15 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     @Cacheable(value = "weather", key = "#userId")
-    public CompletableFuture<List<CardLocationDto>> getAllWeathers(Long userId, List<Location> locations) {
+    public CompletableFuture<List<CardLocationDto>> getAllWeathers(CurrentUserDto user, List<Location> locations) {
         return CompletableFuture.supplyAsync(() -> getCardLocationDto(locations), taskExecutor);
     }
 
     @Override
     @Cacheable(value = "locations", key = "#userId")
-    public List<Location> getLocations(Long userId) {
+    public List<Location> getLocations(CurrentUserDto user) {
         try {
-            return locationDaoImpl.getLocationsByUserId(userId);
+            return locationDaoImpl.getLocationsByUserId(user.getUserId());
         } catch (DataAccessException e) {
             throw new GetLocationsByUserIdException(e);
         }
@@ -64,11 +61,10 @@ public class LocationServiceImpl implements LocationService {
     @Caching(evict = {
             @CacheEvict(value = "locations", key = "T(Long).valueOf(#location.userId)"),
             @CacheEvict(value = "weather", key = "T(Long).valueOf(#location.userId)")})
-    public void saveNewLocation(UserLocationsDto location) {
+    public void saveNewLocation(UserLocationsDto location, CurrentUserDto user) {
         try {
             Location newLocation = new Location(
-                    location.getName(),
-                    Long.valueOf(location.getUserId()),
+                    user.getLogin(), user.getUserId(),
                     Double.valueOf(location.getLatitude()),
                     Double.valueOf(location.getLongitude()));
             locationDaoImpl.saveLocation(newLocation);
@@ -84,7 +80,7 @@ public class LocationServiceImpl implements LocationService {
     @Caching(evict = {
             @CacheEvict(value = "locations", key = "#userId"),
             @CacheEvict(value = "weather", key = "#userId")})
-    public void deleteLocation(Long userId, String latitude, String longitude) {
+    public void deleteLocation(CurrentUserDto user, String latitude, String longitude) {
         double latitudeDouble;
         double longitudeDouble;
         try {
@@ -94,7 +90,7 @@ public class LocationServiceImpl implements LocationService {
             throw new ParseCoordinatesException(e);
         }
         try {
-            locationDaoImpl.deleteLocation(userId, latitudeDouble, longitudeDouble);
+            locationDaoImpl.deleteLocation(user.getUserId(), latitudeDouble, longitudeDouble);
         } catch (DataAccessException e) {
             throw new DeleteLocationException(e);
         }

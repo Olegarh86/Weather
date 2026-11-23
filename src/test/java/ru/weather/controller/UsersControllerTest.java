@@ -11,6 +11,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import ru.weather.dto.CardLocationDto;
+import ru.weather.dto.CurrentUserDto;
 import ru.weather.dto.ResponseWithCoordinates;
 import ru.weather.exception.ConnectToWeatherServiceException;
 import ru.weather.model.Location;
@@ -54,11 +55,12 @@ class UsersControllerTest {
     void indexSuccessTest() {
         List<CardLocationDto> cardLocationsExpected = getCardLocationDto();
         List<Location> locations = new ArrayList<>();
+        CurrentUserDto currentUserDto = new CurrentUserDto(USER_ID_VALUE, FIRST_NAME);
 
-        when(locationServiceImpl.getAllWeathers(USER_ID_VALUE, locations))
+        when(locationServiceImpl.getAllWeathers(currentUserDto, locations))
                 .thenReturn(CompletableFuture.completedFuture(cardLocationsExpected));
 
-        assertEquals("index", weatherController.index(req, model).join());
+        assertEquals("index", weatherController.index(currentUserDto, model).join());
         Object cardLocationDtoResponse = model.getAttribute(ALL_LOCATIONS);
         List<CardLocationDto> cardLocationDtoResult = null;
         if (cardLocationDtoResponse instanceof List<?>) {
@@ -91,8 +93,10 @@ class UsersControllerTest {
     @Test
     void indexFailedTest() {
         List<Location> locations = new ArrayList<>();
-        when(locationServiceImpl.getAllWeathers(USER_ID_VALUE, locations)).thenThrow(new ConnectToWeatherServiceException(new Exception()));
-        assertThrows(ConnectToWeatherServiceException.class, () -> weatherController.index(req, model));
+        CurrentUserDto currentUserDto = new CurrentUserDto(USER_ID_VALUE, FIRST_NAME);
+
+        when(locationServiceImpl.getAllWeathers(currentUserDto, locations)).thenThrow(new ConnectToWeatherServiceException(new Exception()));
+        assertThrows(ConnectToWeatherServiceException.class, () -> weatherController.index(currentUserDto, model));
     }
 
     @Test
@@ -104,8 +108,8 @@ class UsersControllerTest {
         response[0].setLon(LONDON_LON);
 
         when(locationServiceImpl.findAllLocationsByName(LONDON)).thenReturn(response);
-
-        assertEquals("search-results", weatherController.searchResults(LONDON, model, req));
+        CurrentUserDto currentUserDto = new CurrentUserDto(USER_ID_VALUE, FIRST_NAME);
+        assertEquals("search-results", weatherController.searchResults(LONDON, model, currentUserDto));
         ResponseWithCoordinates[] allLocations = (ResponseWithCoordinates[]) model.getAttribute(ALL_LOCATIONS);
 
         assertEquals(USER_ID_VALUE, model.getAttribute("id"));

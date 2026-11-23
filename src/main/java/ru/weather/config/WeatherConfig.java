@@ -25,16 +25,19 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.*;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring6.view.ThymeleafViewResolver;
 import ru.weather.interceptor.AuthInterceptor;
+import ru.weather.resolver.CurrentUserArgumentResolver;
 import ru.weather.service.SessionService;
 import ru.weather.service.UserProfileService;
 
 import javax.sql.DataSource;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -152,9 +155,9 @@ public class WeatherConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor(null, null))
                 .addPathPatterns("/**")
-                .excludePathPatterns("/weather/sign-up",
-                        "/weather/sign-in",
-                        "/weather/error",
+                .excludePathPatterns("/sign-up",
+                        "/sign-in",
+                        "/error",
                         "/resources/**");
     }
 
@@ -198,6 +201,11 @@ public class WeatherConfig implements WebMvcConfigurer {
         executor.setThreadNamePrefix("caffeine-async-");
         executor.initialize();
         return executor;
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(new CurrentUserArgumentResolver());
     }
 }
 
