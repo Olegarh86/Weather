@@ -16,7 +16,9 @@
              th:object="${userSignInDto}">
             <div class="alert alert-danger"
                  role="alert"
-                 th:if="${#fields.hasErrors('*')}">
+                 th:if="${#fields.hasGlobalErrors()}"
+                 th:each="err : ${#fields.globalErrors()}"
+                 th:text="${err}">
                 Invalid username or password.
             </div>
         </div>
@@ -33,7 +35,8 @@
                         Username
                     </label>
                     <div class="input-group has-validation">
-                        <input class="form-control is-invalid"
+                        <input class="form-control"
+                               th:errorclass="is-invalid"
                                maxlength="20"
                                minlength="2"
                                required
@@ -52,7 +55,8 @@
                         Password
                     </label>
                     <div class="input-group has-validation">
-                        <input class="form-control is-invalid"
+                        <input class="form-control"
+                               th:errorclass="is-invalid"
                                minlength="8"
                                maxlength="64"
                                required

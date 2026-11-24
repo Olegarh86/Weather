@@ -29,7 +29,6 @@ public class WeatherController {
                                            Model model) {
         List<Location> locations = locationServiceImpl.getLocations(user);
         CompletableFuture<List<CardLocationDto>> cardLocations = locationServiceImpl.getAllWeathers(user, locations);
-        model.addAttribute("allLocations", cardLocations);
         return cardLocations.thenApply(allLocations -> {
             model.addAttribute("allLocations", allLocations);
             return "index";
@@ -37,9 +36,19 @@ public class WeatherController {
     }
 
     @GetMapping("/search-results")
-    public String searchResults(@RequestParam("location") String locationName,
+    public String searchResults(@RequestParam(value = "location", required = false) String locationName,
                                 Model model,
                                 @CurrentUser CurrentUserDto user) {
+        locationName = locationName.trim();
+        if (locationName.isBlank()) {
+            model.addAttribute("searchError", "Please enter a location name.");
+            return "search-results";
+        }
+
+        if (locationName.length() > 100) {
+            model.addAttribute("searchError", "Location name is too long (max 100 characters).");
+            return "search-results";
+        }
         ResponseWithCoordinates[] allLocations = locationServiceImpl.findAllLocationsByName(locationName);
         model.addAttribute("id", user.getUserId());
         model.addAttribute("locationName", locationName);

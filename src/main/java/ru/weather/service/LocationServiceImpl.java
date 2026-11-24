@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
@@ -32,13 +33,13 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    @Cacheable(value = "weather", key = "#userId")
+    @Cacheable(value = "weather", key = "#user.userId")
     public CompletableFuture<List<CardLocationDto>> getAllWeathers(CurrentUserDto user, List<Location> locations) {
         return CompletableFuture.supplyAsync(() -> getCardLocationDto(locations), taskExecutor);
     }
 
     @Override
-    @Cacheable(value = "locations", key = "#userId")
+    @Cacheable(value = "locations", key = "#user.userId")
     public List<Location> getLocations(CurrentUserDto user) {
         try {
             return locationDaoImpl.getLocationsByUserId(user.getUserId());
@@ -59,8 +60,8 @@ public class LocationServiceImpl implements LocationService {
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "locations", key = "T(Long).valueOf(#location.userId)"),
-            @CacheEvict(value = "weather", key = "T(Long).valueOf(#location.userId)")})
+            @CacheEvict(value = "locations", key = "#user.userId"),
+            @CacheEvict(value = "weather", key = "#user.userId")})
     public void saveNewLocation(UserLocationsDto location, CurrentUserDto user) {
         try {
             Location newLocation = new Location(
@@ -68,18 +69,18 @@ public class LocationServiceImpl implements LocationService {
                     Double.valueOf(location.getLatitude()),
                     Double.valueOf(location.getLongitude()));
             locationDaoImpl.saveLocation(newLocation);
-        } catch (NumberFormatException e) {
-            throw new SaveLocationException(e);
+        } catch (DuplicateKeyException e) {
+            throw new LocationAlreadyExist(e);
         } catch (DataAccessException ex) {
-            throw new LocationAlreadyExist(ex);
+            throw new SaveLocationException(ex);
         }
     }
 
     @Override
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "locations", key = "#userId"),
-            @CacheEvict(value = "weather", key = "#userId")})
+            @CacheEvict(value = "locations", key = "#user.userId"),
+            @CacheEvict(value = "weather", key = "#user.userId")})
     public void deleteLocation(CurrentUserDto user, String latitude, String longitude) {
         double latitudeDouble;
         double longitudeDouble;

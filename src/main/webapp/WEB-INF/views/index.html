@@ -6,6 +6,9 @@
 <section id="page-content">
     <div class="container mt-4">
         <div th:replace="~{fragments/search-form :: search-form}"></div>
+        <div th:if="${duplicateError}" class="alert alert-warning" role="alert">
+            <span th:text="${alreadyExistError}">Location already added</span>
+        </div>
         <div class="row">
             <div th:if="${allLocations == null or #lists.isEmpty(allLocations)}">
                 No locations found, find locations and add for tracking

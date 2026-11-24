@@ -101,8 +101,7 @@ public class UserLifeCycleIntegrationTest {
                         .param(REDIRECT_TO_KEY, INDEX_PATH))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(view().name(SIGN_IN_WITH_ERRORS))
-                .andExpect(model().attributeHasFieldErrorCode(
-                        "userSignInDto", PASSWORD_KEY, "Incorrect.weatherUser.password"));
+                .andExpect(model().attributeHasErrors("userSignInDto"));
     }
 
     @Test

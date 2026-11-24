@@ -60,7 +60,10 @@ public class AuthController {
             bindingResult.rejectValue("login", "AlreadyExist.weatherUser.login");
             return "sign-up-with-errors";
         }
-        if (redirectTo == null || redirectTo.isBlank()) {
+        if (redirectTo == null
+                || redirectTo.isBlank()
+                || redirectTo.startsWith("//")
+                || !redirectTo.startsWith("/")) {
             redirectTo = "/index";
         }
         return "redirect:" + redirectTo;
@@ -86,17 +89,16 @@ public class AuthController {
         Cookie cookie;
         try {
             cookie = authServiceImpl.authenticate(userDto);
-        } catch (UserNotFoundException e) {
+        } catch (UserNotFoundException | PasswordIncorrectException e) {
             log.warn(e.getMessage(), e);
-            bindingResult.rejectValue("login", "NotFound.weatherUser");
-            return "sign-in-with-errors";
-        } catch (PasswordIncorrectException ex) {
-            log.warn(ex.getMessage(), ex);
-            bindingResult.rejectValue("password", "Incorrect.weatherUser.password");
+            bindingResult.reject("Invalid", "Invalid username or password");
             return "sign-in-with-errors";
         }
         response.addCookie(cookie);
-        if (redirectTo == null || redirectTo.isBlank()) {
+        if (redirectTo == null
+                || redirectTo.isBlank()
+                || redirectTo.startsWith("//")
+                || !redirectTo.startsWith("/")) {
             redirectTo = "/index";
         }
         return "redirect:" + redirectTo;
